@@ -1,0 +1,10 @@
+data_file = roman_real_theory_new.modelvector
+mask_file = Roman_ones.mask
+cov_file = cov_roman_test
+nz_lens_file = Roman_n30_10bins.nz
+nz_source_file = Roman_n30_10bins.nz
+lens_ntomo = 10
+source_ntomo = 10
+n_theta = 15
+theta_min_arcmin = 2.5
+theta_max_arcmin = 250.

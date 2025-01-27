@@ -1,0 +1,11 @@
+data_file = roman_theory_cs.modelvector
+cov_file = cov_roman_test_8g
+mask_file = roman_test_cs.mask
+nz_lens_file = roman_source8.nz
+nz_source_file = roman_source8.nz
+ggl_overlap_cut = 1.0
+lens_ntomo = 8
+source_ntomo = 8
+n_theta = 15
+theta_min_arcmin = 2.5
+theta_max_arcmin = 250.

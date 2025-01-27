@@ -1,0 +1,14 @@
+*.o
+*.pyc
+*.so
+*.pyo
+*.cfg
+*.npy
+*.out
+chains/
+.ipynb_checkpoints/
+.ipynb_*
+EXAMPLE_PROFILE1_UOFA.sbatch
+data/*cov*
+data/cov*
+data/*cov
