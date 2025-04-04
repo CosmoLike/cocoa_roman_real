@@ -23,31 +23,32 @@ likelihood:
 
 
 #ASSUME DATA VECTOR WAS CREATED WITH FOLLOWING PARAMS
-#  As_1e9: 2.5
-#  ns: 0.97
-#  H0: 71
-#  omegab: 0.05
-#  omegam: 0.25
+#  As_1e9: 2.1
+#  ns: 0.96605
+#  H0: 67.32
+#  omegab: 0.04
+#  omegam: 0.3
 #  mnu: 0.06
-#  roman_DZ_S1: 0.01414
-#  roman_DZ_S2: 0.004298
-#  roman_DZ_S3: -0.002162
-#  roman_DZ_S4: 0.000047
-#  roman_DZ_S5: 0.003450
-#  roman_DZ_S6: 0.002860
-#  roman_DZ_S7: 0.002578
-#  roman_DZ_S8: -0.001002
-#  roman_M1: 0.00203
-#  roman_M2: 0.00144
-#  roman_M3: 0.00660
-#  roman_M4: -0.00774
-#  roman_M5: -0.00101
-#  roman_M6: -0.00328
-#  roman_M7: 0.00097
-#  roman_M8: 0.00278
-#  w: -1.0
-#  roman_A1_1: 0.606102
-#  roman_A1_2: -1.51541
+#  roman_DZ_S1: 0.0
+#  roman_DZ_S2: 0.0
+#  roman_DZ_S3: 0.0
+#  roman_DZ_S4: 0.0
+#  roman_DZ_S5: 0.0
+#  roman_DZ_S6: 0.0
+#  roman_DZ_S7: 0.0
+#  roman_DZ_S8: 0.0
+#  roman_M1: 0.0
+#  roman_M2: 0.0
+#  roman_M3: 0.0
+#  roman_M4: 0.0
+#  roman_M5: 0.0
+#  roman_M6: 0.0
+#  roman_M7: 0.0
+#  roman_M8: 0.0
+#  roman_A1_1: 0.6
+#  roman_A1_2: -1.5
+#  w0pwa: -1.0
+#  w0: -1.0
 
 
 params:
