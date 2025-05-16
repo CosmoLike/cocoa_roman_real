@@ -3,9 +3,9 @@ debug: False
 stop_at_error: False
 
 likelihood:
-  roman_real.roman_real_cosmic_shear:
+  roman_real.roman_real_3x2pt:
     path: ./external_modules/data/roman_real
-    data_file: example1.dataset
+    data_file: example2.dataset
     accuracyboost: 1.0
     integration_accuracy: 0
     kmax_boltzmann: 5.0
@@ -13,8 +13,38 @@ likelihood:
     non_linear_emul: 2
     IA_model: 0
     IA_redshift_evolution: 3
-    print_datavector: False
+    print_datavector: True
+    print_datavector_file: "./projects/roman_real/data/example2.modelvector"
     ggl_exclude: [[6,0],[7,0],[7,1]]
+
+#ASSUME DATA VECTOR WAS CREATED WITH FOLLOWING PARAMS
+#  As_1e9: 2.1
+#  ns: 0.96605
+#  H0: 67.32
+#  omegab: 0.04
+#  omegam: 0.3
+#  mnu: 0.06
+#  roman_DZ_S1: 0.0
+#  roman_DZ_S2: 0.0
+#  roman_DZ_S3: 0.0
+#  roman_DZ_S4: 0.0
+#  roman_DZ_S5: 0.0
+#  roman_DZ_S6: 0.0
+#  roman_DZ_S7: 0.0
+#  roman_DZ_S8: 0.0
+#  roman_M1: 0.0
+#  roman_M2: 0.0
+#  roman_M3: 0.0
+#  roman_M4: 0.0
+#  roman_M5: 0.0
+#  roman_M6: 0.0
+#  roman_M7: 0.0
+#  roman_M8: 0.0
+#  roman_A1_1: 0.6
+#  roman_A1_2: -1.5
+#  w0pwa: -1.0
+#  w0: -1.0
+
 
 params:
   As_1e9:
@@ -285,7 +315,15 @@ sampler:
       roman_M8: 0.0
       roman_A1_1: 0.6
       roman_A1_2: -1.5
+      roman_B1_1: 1.18
+      roman_B1_2: 1.40
+      roman_B1_3: 1.55
+      roman_B1_4: 1.71
+      roman_B1_5: 1.90
+      roman_B1_6: 2.15
+      roman_B1_7: 2.52
+      roman_B1_8: 2.44
       w0pwa: -1.0
       w: -1.0
 
-output: ./projects/roman_real/chains/EXAMPLE_EVALUATE1
+output: ./projects/roman_real/chains/EXAMPLE_EVALUATE2
