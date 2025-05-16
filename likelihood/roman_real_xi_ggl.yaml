@@ -20,7 +20,7 @@ IA_model: 0
 
 ggl_exclude: [[4,0],[5,0],[5,1],[6,0],[6,1],[6,2],[7,0],[7,1],[7,2],[7,3]]  
 
-# BIAS REDSHIFT EVOLUTION [b1,b2,bs2,b3,bmag] (see bias.c)
+# BIAS REDSHIFT EVOLUTION [b1,b2,bs2,b3,bmag] (choices: see bias.h)
 bias_model: [0,0,0,1,0]
 
 print_intermediate_products: False
@@ -35,4 +35,4 @@ filename_baryon_pca: "./projects/roman_real/data/pca.txt"
 print_datavector: False
 print_datavector_file: "./projects/roman_real/chains/roman_real_theory.modelvector"
 
-params: !defaults [roman_real_params_lens, roman_real_params_source]
+params: !defaults [roman_real_params_source, roman_real_params_lens]

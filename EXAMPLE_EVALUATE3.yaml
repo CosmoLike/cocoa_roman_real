@@ -3,7 +3,7 @@ debug: False
 stop_at_error: False
 
 likelihood:
-  roman_real.roman_real_cosmic_shear:
+  roman_real.roman_real_xi_ggl:
     path: ./external_modules/data/roman_real
     data_file: example1.dataset
     accuracyboost: 1.0
@@ -13,7 +13,6 @@ likelihood:
     non_linear_emul: 2
     IA_model: 0
     IA_redshift_evolution: 3
-    print_datavector: False
     ggl_exclude: [[6,0],[7,0],[7,1]]
 
 params:
@@ -150,96 +149,6 @@ params:
     derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
     latex: \Omega_\mathrm{\\nu}
 
-  roman_M1:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    proposal: 0.005
-    latex: m_\mathrm{roman}^1
-  roman_M2:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    proposal: 0.005
-    latex: m_\mathrm{roman}^2
-  roman_M3:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    proposal: 0.005
-    latex: m_\mathrm{roman}^3
-  roman_M4:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    proposal: 0.005
-    latex: m_\mathrm{roman}^4
-  roman_M5:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    proposal: 0.005
-    latex: m_\mathrm{roman}^5
-  roman_M6:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    proposal: 0.005
-    latex: m_\mathrm{roman}^6
-  roman_M7:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    proposal: 0.005
-    latex: m_\mathrm{roman}^7
-  roman_M8:
-    prior:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    ref:
-      dist: norm
-      loc: 0.0
-      scale: 0.005
-    proposal: 0.005
-    latex: m_\mathrm{roman}^8
-
-
 theory:
   camb:
     path: ./external_modules/code/CAMB
@@ -255,7 +164,6 @@ theory:
       dark_energy_model: ppf
       accurate_massive_neutrino_transfers: false
       k_per_logint: 20
-      #AccuracyBoost: 2.0
 
 sampler:
   evaluate:
@@ -292,8 +200,8 @@ sampler:
       roman_B1_5: 1.90
       roman_B1_6: 2.15
       roman_B1_7: 2.52
-      roman_B1_8: 3.44
+      roman_B1_8: 2.44
       w0pwa: -1.0
       w: -1.0
 
-output: ./projects/roman_real/chains/EXAMPLE_EVALUATE1
+output: ./projects/roman_real/chains/EXAMPLE_EVALUATE3

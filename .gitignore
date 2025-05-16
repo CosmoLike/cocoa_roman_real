@@ -9,3 +9,4 @@ chains/
 .ipynb_*
 *.sbatch
 data/*cov
+scripts/.DS_Store
