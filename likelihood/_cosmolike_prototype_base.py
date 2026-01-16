@@ -9,7 +9,7 @@ import time
 
 #Adding baryon package imports
 import pyspk as spk
-#import BCemu
+import BCemu
 from astropy.cosmology import FlatLambdaCDM
 
 # Local
@@ -180,7 +180,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
             "z": self.z_interp_1D 
           } # in Mpc
         }     
-    elif self.baryon_suppression == 1:
+    elif self.baryon_suppression == 1: #SP(k)
       return {
         "As": None,
         "H0": None,
@@ -191,6 +191,35 @@ class _cosmolike_prototype_base(DataSetLikelihood):
         "alpha_spk": None, #starting baryon code
         "beta_spk": None,
         "gamma_spk": None,
+         #ending baryon code 
+        "Pk_interpolator": {
+          "z": self.z_interp_2D,
+          "k_max": self.kmax_boltzmann * self.accuracyboost,
+          "nonlinear": (True,False),
+          "vars_pairs": ([("delta_tot", "delta_tot")])
+        },
+        "comoving_radial_distance": {
+          "z": self.z_interp_1D 
+        }, # in Mpc
+        "Cl": { # DONT REMOVE THIS - SOME WEIRD BEHAVIOR IN CAMB WITHOUT WANTS_CL
+          'tt': 0
+        }
+      }
+    elif self.baryon_suppression == 2: #BCemu
+      return {
+        "As": None,
+        "H0": None,
+        "omegam": None,
+        "omegab": None,
+        "mnu": None,
+        "w": None,
+        "log10Mc_bcemu": None, #starting baryon code
+        "mu_bcemu": None,
+        "thej_bcemu": None,
+        "gamma_bcemu": None,
+        "delta_bcemu": None,
+        "eta_bcemu": None,
+        "deta_bcemu": None,
          #ending baryon code 
         "Pk_interpolator": {
           "z": self.z_interp_2D,
@@ -306,6 +335,36 @@ class _cosmolike_prototype_base(DataSetLikelihood):
             lnbt_spk[np.power(10,self.log10k_interp_2D)<kmin_spk] = 0.0 #Kunhao masked this
 
             lnPNL[i::self.len_z_interp_2D] += lnbt_spk
+      elif self.baryon_suppression == 2: #BCemu version
+        bfcemu = BCemu.BCM_7param(Ob= self.provider.get_param("omegab"), Om = self.provider.get_param("omegam"))
+        bcmdict = {
+          'log10Mc': self.provider.get_param("log10Mc_bcemu"),
+          'mu': self.provider.get_param("mu_bcemu"),
+          'thej': self.provider.get_param("thej_bcemu"),
+          'gamma': self.provider.get_param("gamma_bcemu"),
+          'delta': self.provider.get_param("delta_bcemu"),
+          'eta': self.provider.get_param("eta_bcemu"),
+          'deta': self.provider.get_param("deta_bcemu")
+        }
+        kmin_bcemu = 0.034 #from BCemu
+        kmax_bcemu = 12.517 #from BCemu
+        logkmin_bcemu = np.log10(kmin_bcemu)
+        logkmax_bcemu = np.log10(kmax_bcemu)
+        for i, this_z in enumerate(self.z_interp_2D):
+          #Note that SPk only works for z<3, going to assume high z doesn't matter
+          #need to test calibration at high z.
+          if this_z < 2. and this_z>0: #Limits set by BCemu training
+            #using method 2 for now, will add more methods later
+            k_eval = 10**np.linspace(logkmin_bcemu, logkmax_bcemu, 100) #h/Mpc
+            sup_k = bfcemu.get_boost(this_z, bcmdict, k_eval)
+
+            interp_bcemu = interp1d(np.log10(k_eval), 
+                                  np.log10(sup_k), kind = 'linear', fill_value = 'extrapolate', assume_sorted = True)
+            
+            lnbt_bcemu = interp_bcemu(self.log10k_interp_2D)
+            lnbt_bcemu[np.power(10,self.log10k_interp_2D)<kmin_bcemu] = 0.0 #mask at small k to not suppress
+
+            lnPNL[i::self.len_z_interp_2D] += lnbt_bcemu
 
       #End baryons here
 
