@@ -7,6 +7,11 @@ from scipy.interpolate import interp1d
 import sys
 import time
 
+#Adding baryon package imports
+import pyspk as spk
+#import BCemu
+from astropy.cosmology import FlatLambdaCDM
+
 # Local
 from cobaya.likelihoods.base_classes import DataSetLikelihood
 from cobaya.log import LoggedError
@@ -110,6 +115,9 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       
       if self.non_linear_emul == 1:
         self.emulator = ee2.PyEuclidEmulator()
+      
+      if self.baryon_suppression != 0:
+        self.use_baryon_pca = False
 
       if self.create_baryon_pca:
         self.use_baryon_pca = False
@@ -172,6 +180,31 @@ class _cosmolike_prototype_base(DataSetLikelihood):
             "z": self.z_interp_1D 
           } # in Mpc
         }     
+    elif self.baryon_suppression == 1:
+      return {
+        "As": None,
+        "H0": None,
+        "omegam": None,
+        "omegab": None,
+        "mnu": None,
+        "w": None,
+        "alpha_spk": None, #starting baryon code
+        "beta_spk": None,
+        "gamma_spk": None,
+         #ending baryon code 
+        "Pk_interpolator": {
+          "z": self.z_interp_2D,
+          "k_max": self.kmax_boltzmann * self.accuracyboost,
+          "nonlinear": (True,False),
+          "vars_pairs": ([("delta_tot", "delta_tot")])
+        },
+        "comoving_radial_distance": {
+          "z": self.z_interp_1D 
+        }, # in Mpc
+        "Cl": { # DONT REMOVE THIS - SOME WEIRD BEHAVIOR IN CAMB WITHOUT WANTS_CL
+          'tt': 0
+        }
+      }
     else:
       return {
         "As": None,
@@ -191,7 +224,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
         }, # in Mpc
         "Cl": { # DONT REMOVE THIS - SOME WEIRD BEHAVIOR IN CAMB WITHOUT WANTS_CL
           'tt': 0
-        }
+      }
       }
 
   # ------------------------------------------------------------------------
@@ -238,10 +271,43 @@ class _cosmolike_prototype_base(DataSetLikelihood):
           nonlinear=True, extrap_kmax =2.5e2*self.accuracyboost).logP(self.z_interp_2D,
           np.power(10.0,self.log10k_interp_2D)).flatten(order='F')+np.log(h**3)   
       else:
-        raise LoggedError(self.log, "non_linear_emul = %d is an invalid option", non_linear_emul)
+        raise LoggedError(self.log, "non_linear_emul = %d is an invalid option", self.non_linear_emul)
 
       G_growth = np.sqrt(PKL.P(self.z_interp_2D,0.0005)/PKL.P(0,0.0005))*(1+self.z_interp_2D)
       G_growth /= G_growth[-1]
+
+      #Adding baryons here. Following Kunhao, iterating every z-specified. Calling suppression before nonlinear
+      #pk calculation
+
+      if self.baryon_suppression == 1: #SP(k) version
+        #if self.non_linear_emu == 2:
+          #raise NotImplementedError("Baryon suppression with non_linear_emu = 2 not implemented yet")
+        
+        cosmo = FlatLambdaCDM(H0=self.provider.get_param("H0"), Om0 = self.provider.get_param("omegam"),)
+
+        alpha = self.provider.get_param("alpha_spk")
+        beta = self.provider.get_param("beta_spk")
+        gamma = self.provider.get_param("gamma_spk")
+        kmin_spk = 8.73e-3 #in h/Mpc (copying from Euclidemu2 min k)
+        kmax_spk = 8 # in h/Mpc (Spk says might be inaccurate above k = 8)
+        for i, this_z in enumerate(self.z_interp_2D):
+          #Note that SPk only works for z<3, going to assume high z doesn't matter
+          #need to test calibration at high z.
+          if this_z < 3. and this_z>0.125: #Limits set by Spk improve chi2
+            #using method 2 for now, will add more methods later
+            k_spk, sup = spk.sup_model(SO=500, z = this_z, alpha = alpha, beta = beta, gamma = gamma, cosmo = cosmo, 
+                                       k_min = kmin_spk, k_max = kmax_spk, verbose = False)
+            
+            
+            interp_spk = interp1d(np.log10(k_spk), 
+                                  np.log10(sup), kind = 'linear', fill_value = 'extrapolate', assume_sorted = True)
+            
+            lnbt_spk = interp_spk(self.log10k_interp_2D)
+            lnbt_spk[np.power(10,self.log10k_interp_2D)<kmin_spk] = 0.0 #Kunhao masked this
+
+            lnPNL[i::self.len_z_interp_2D] += lnbt_spk
+
+      #End baryons here
 
       ci.set_cosmology(
         omegam=self.provider.get_param("omegam"),
