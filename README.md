@@ -1,3 +1,11 @@
+## This is a work-in-progress repository to add various baryon models to cocoa. 
+Installation instructions. First navigate to the Cocoa projects folder and clone the repository into roman_real
+>
+>   git clone https://github.com/nihardalal/cocoa_roman_real_baryons.git roman_real
+>
+You'll also need to install [SP(k)](https://github.com/jemme07/pyspk) and [BCEmu](https://github.com/sambit-giri/BCemu) in your .local environment (after `source start_cocoa.sh`).
+
+I've included a few example evaluate YAML files. Please note that I'm not able to get this running with euclidemulator at the moment, but the code does seem to work with halofit. More testing to be done!
 ## Running Cosmolike projects (Basic instructions) <a name="running_cosmolike_projects"></a> 
 
 From `Cocoa/Readme` instructions:
