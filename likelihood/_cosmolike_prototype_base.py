@@ -326,10 +326,11 @@ class _cosmolike_prototype_base(DataSetLikelihood):
             #using method 2 for now, will add more methods later
             k_spk, sup = spk.sup_model(SO=500, z = this_z, alpha = alpha, beta = beta, gamma = gamma, cosmo = cosmo, 
                                        k_min = kmin_spk, k_max = kmax_spk, verbose = False)
-            
+            if np.any(np.isnan(sup)): #nancheck from Spk output
+              continue
             
             interp_spk = interp1d(np.log10(k_spk), 
-                                  np.log10(sup), kind = 'linear', fill_value = 'extrapolate', assume_sorted = True)
+                                  np.log(sup), kind = 'linear', fill_value = 'extrapolate', assume_sorted = True)
             
             lnbt_spk = interp_spk(self.log10k_interp_2D)
             lnbt_spk[np.power(10,self.log10k_interp_2D)<kmin_spk] = 0.0 #Kunhao masked this
@@ -357,9 +358,11 @@ class _cosmolike_prototype_base(DataSetLikelihood):
             #using method 2 for now, will add more methods later
             k_eval = 10**np.linspace(logkmin_bcemu, logkmax_bcemu, 100) #h/Mpc
             sup_k = bfcemu.get_boost(this_z, bcmdict, k_eval)
+            if np.any(np.isnan(sup_k)): #nancheck from BCEmu output
+              continue
 
             interp_bcemu = interp1d(np.log10(k_eval), 
-                                  np.log10(sup_k), kind = 'linear', fill_value = 'extrapolate', assume_sorted = True)
+                                  np.log(sup_k), kind = 'linear', fill_value = 'extrapolate', assume_sorted = True)
             
             lnbt_bcemu = interp_bcemu(self.log10k_interp_2D)
             lnbt_bcemu[np.power(10,self.log10k_interp_2D)<kmin_bcemu] = 0.0 #mask at small k to not suppress
