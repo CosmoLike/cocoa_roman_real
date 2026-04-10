@@ -33,23 +33,6 @@ From `Cocoa/Readme` instructions:
 
 
 > [!NOTE]
-> In case users need to rerun `setup_cocoa.sh`, Cocoa will not download previously installed packages, cosmolike projects, or large datasets, unless the following keys are set on `set_installation_options.sh`
->
->     [Adapted from Cocoa/set_installation_options.sh shell script]
->     # ------------------------------------------------------------------------------
->     # OVERWRITE_EXISTING_XXX_CODE=1 -> setup_cocoa overwrites existing PACKAGES ----
->     # overwrite: delete the existing PACKAGE folder and install it again -----------
->     # redownload: delete the compressed file and download data again ---------------
->     # These keys are only relevant if you run setup_cocoa multiple times -----------
->     # ------------------------------------------------------------------------------
->     (...)
->     export OVERWRITE_EXISTING_ALL_PACKAGES=1    # except cosmolike projects
->     #export OVERWRITE_EXISTING_COSMOLIKE_CODE=1 # dangerous (possible loss of uncommitted work)
->                                                 # if unset, users must manually delete cosmolike projects
->     #export REDOWNLOAD_EXISTING_ALL_DATA=1      # warning: some data is many GB
->
-
-> [!NOTE]
 > If users want to recompile cosmolike, there is no need to rerun the Cocoa general scripts. Instead, run the following three commands:
 >
 >      source start_cocoa.sh
@@ -62,7 +45,7 @@ From `Cocoa/Readme` instructions:
 > 
 >       source ./installation_scripts/compile_all_projects.sh
 > 
-> or (in case users just want to compile the lsst-y1 project)
+> or (in case users just want to compile roman_real project)
 >
 >       source ./projects/roman_real/scripts/compile_roman_real.sh
 

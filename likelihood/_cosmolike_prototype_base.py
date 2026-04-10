@@ -34,7 +34,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     self.ntheta = ini.int("n_theta")
     self.theta_min_arcmin = ini.float("theta_min_arcmin")
     self.theta_max_arcmin = ini.float("theta_max_arcmin")
-    
+
     # ------------------------------------------------------------------------   
     tmp=int(1000 + 250*self.accuracyboost)
     self.z_interp_1D = np.concatenate((np.linspace(0.0,3.0,max(100,int(0.80*tmp))),
@@ -50,7 +50,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     self.log10k_interp_2D = np.linspace(-4.99,2.0,int(1250+250*self.accuracyboost))
     self.len_log10k_interp_2D = len(self.log10k_interp_2D)
     # ------------------------------------------------------------------------
-    
+
     ci.initial_setup()
     ci.init_probes(possible_probes=self.probe)
     ci.init_binning(int(self.ntheta), self.theta_min_arcmin, self.theta_max_arcmin)
@@ -96,13 +96,17 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       
       ci.init_data_real(self.cov_file, self.mask_file, self.data_vector_file)
 
+      if (int(self.IA_model) == 0) and (int(self.IA_code) == 1):
+   		# Fall back to C FASTPT under NLA
+        self.IA_code = 0
       ci.init_IA(ia_model = int(self.IA_model), 
-                 ia_redshift_evolution = int(self.IA_redshift_evolution))
-     
+                ia_redshift_evolution = int(self.IA_redshift_evolution),
+                ia_code = int(self.IA_code))
+
       if self.probe != "xi":
         # (b1, b2, bs2, b3, bmag). 0 = one amplitude per bin
         ci.init_bias(bias_model=self.bias_model)
-      
+
       if self.non_linear_emul == 1:
         self.emulator = ee2.PyEuclidEmulator()
 
@@ -123,7 +127,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       self.log.info('baryon_pca_file = %s loaded', baryon_pca_file)
     else:
       self.log.info('use_baryon_pca = False')
-  
+
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -187,7 +191,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
         }, # in Mpc
       }
     else:
-      return {
+      _requirements_ = {
         "As": None,
         "H0": None,
         "omegam": None,
@@ -208,6 +212,11 @@ class _cosmolike_prototype_base(DataSetLikelihood):
           'tt': 0
         }
       }
+      # Also need Python FAST-PT if IA_code == 1
+      if (self.IA_code == 1):
+        _requirements_["IA_PS"] = None
+        _requirements_["bias_PS"] = None
+      return _requirements_
 
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -282,6 +291,26 @@ class _cosmolike_prototype_base(DataSetLikelihood):
         z_1D=self.z_interp_1D,
         chi=self.provider.get_comoving_radial_distance(self.z_interp_1D)*h # convert to Mpc/h
       )
+      
+      # IA power spectra from FAST-PT 
+      # Must be called after ci.set_cosmology b/c it resets random state cosmology.random
+      if int(self.IA_code) == 1:
+        FPTIA, FPTIA_kcut  = self.provider.get_IA_PS()
+        FPTbias, sigma4    = self.provider.get_bias_PS()
+        FPT_kmin, FPT_kmax = FPTIA[-2,0], FPTIA[-2,-1]
+        
+        ci.set_IA_PS(PS=FPTIA.flatten(order='C'), 
+                     kmin=FPT_kmin, 
+                     kmax=FPT_kmax, 
+                     cutoff=FPTIA_kcut, 
+                     N=len(FPTIA[0]))
+        
+        ci.set_bias_PS(PS=FPTbias.flatten(order='C'), 
+                       kmin=FPT_kmin, 
+                       kmax=FPT_kmax, 
+                       cutoff=FPTIA_kcut, 
+                       sigma4=sigma4, 
+                       N=len(FPTIA[0]))
     else:
       ci.set_distances(
         z=self.z_interp_1D,
@@ -340,7 +369,9 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       ci.set_nuisance_bias(
         B1=[params.get(p,1) for p in [survey+"_B1_"+str(i+1) for i in range(ntomo)]],
         B2=[params.get(p,0) for p in [survey+"_B2_"+str(i+1) for i in range(ntomo)]],
-        B_MAG=[params.get(p,0) for p in [survey+"_BMAG_"+str(i+1) for i in range(ntomo)]]
+        B_MAG=[params.get(p,0) for p in [survey+"_BMAG_"+str(i+1) for i in range(ntomo)]],
+        B3nl=[params.get(p,0) for p in [survey+"_B3NL_"+str(i+1) for i in range(ntomo)]],
+        BK=[params.get(p,0) for p in [survey+"_BK_"+str(i+1) for i in range(ntomo)]]
       )
       if self.external_nz_modeling: 
         # here we send n(z) at every point in the chain as the user may

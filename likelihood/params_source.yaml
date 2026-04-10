@@ -1,3 +1,4 @@
+  # WL photo-z errors
   roman_DZ_S1:
     prior:
       dist: norm

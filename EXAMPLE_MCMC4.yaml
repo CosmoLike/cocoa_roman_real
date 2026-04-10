@@ -6,16 +6,24 @@ likelihood:
   roman_real.cosmic_shear:
     path: ./external_modules/data/roman_real
     data_file: example1.dataset # that assumes lens = source
-    lmax: 70000 # gg in Roman that requires higher lmax
+    print_datavector: False
+    print_datavector_file: "./projects/roman_real/chains/theory.modelvector"
     accuracyboost: 1.0
     integration_accuracy: 0
+    lmax: 75000 # lmax computed for real space correlation function
     kmax_boltzmann: 7.5
-    # 1 EE2, 2 Halofit
+    # 1 EE2, 2 Halofit (check below on the slow/fast decomposition)
+    # Warning: Euclid Emulator has strict boundaries
     non_linear_emul: 2
-    IA_model: 0
+    IA_model: 0 # NLA (0) or TATT (1)
+    IA_code: 0  # CFASTPT (0) or FASTPT (1) (only works if not NLA)
     IA_redshift_evolution: 3
-    print_datavector: False
     ggl_exclude: [[6,0],[7,0],[7,1]]
+    debug: false
+    use_baryon_pca: false
+    create_baryon_pca: false
+    baryon_pca_select_sims: "antilles-2-99/antilles-101-378/antilles-380-400"
+    filename_baryon_pca: "./projects/lsst_y1/chains/pca.txt"
 params:
   As_1e9:
     prior:
@@ -36,8 +44,8 @@ params:
     ref:
       dist: norm
       loc: 0.96605
-      scale: 0.01
-    proposal: 0.01
+      scale: 0.015
+    proposal: 0.015
     latex: n_\mathrm{s}
   H0:
     prior:
@@ -56,8 +64,8 @@ params:
     ref:
       dist: norm
       loc: 0.0495
-      scale: 0.004
-    proposal: 0.004
+      scale: 0.005
+    proposal: 0.005
     latex: \Omega_\mathrm{b}
     drop: true
   omegam:
@@ -71,16 +79,6 @@ params:
     proposal: 0.015
     latex: \Omega_\mathrm{m}
     drop: true
-  w0pwa:
-    prior:
-      min: -5 
-      max: -0.01
-    ref:
-      dist: norm
-      loc: -0.99
-      scale: 0.05
-    proposal: 0.05
-    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
   w:
     prior:
       min: -3
@@ -91,6 +89,20 @@ params:
       scale: 0.05
     proposal: 0.05
     latex: w_{0,\mathrm{DE}}
+  w0pwa:
+    prior:
+      min: -5 
+      max: -0.01
+    ref:
+      dist: norm
+      loc: -0.99
+      scale: 0.05
+    proposal: 0.05
+    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
+    drop: true
+  wa:
+    value: 'lambda w0pwa, w: w0pwa - w'
+    latex: w_{a,\mathrm{DE}}
   mnu:
     value: 0.06
   tau:
@@ -105,9 +117,6 @@ params:
   As:
     value: 'lambda As_1e9: 1e-9 * As_1e9'
     latex: A_\mathrm{s}
-  wa:
-    value: 'lambda w0pwa, w: w0pwa - w'
-    latex: w_{a,\mathrm{DE}}
   omegabh2:
     value: 'lambda omegab, H0: omegab*(H0/100)**2'
     latex: \Omega_\mathrm{b} h^2
@@ -144,10 +153,11 @@ params:
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # Nuisance parameters below (it overwrites the default settings)
-  # Default settings in likelihood/roman_real_params_lens.yaml
-  # Default settings in likelihood/roman_real_params_source.yaml
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # WL photo-z errors
   roman_DZ_S1:
     prior:
       dist: norm
@@ -238,6 +248,7 @@ params:
     latex: \Delta z_\mathrm{s,roman}^8
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
+  # Shear calibration parameters
   roman_M1:
     prior:
       dist: norm
@@ -348,6 +359,7 @@ params:
       loc: -1.7
       scale: 0.5
     proposal: 0.5
+    latex: A_\mathrm{1-IA,roman}^2
   roman_A2_1:
     value: 0.0
     #prior:
@@ -388,15 +400,19 @@ theory:
     stop_at_error: False
     use_renames: True
     extra_args:
-      halofit_version: hmcode2020
-      AccuracyBoost: 1.05
+      halofit_version: mead2020
+      AccuracyBoost: 1.1
       lens_potential_accuracy: 1.0
-      num_massive_neutrinos: 1
-      nnu: 3.046
       dark_energy_model: ppf
       accurate_massive_neutrino_transfers: false
       k_per_logint: 15
-
+      kmax: 7.5
+#  fastpt:
+#    path: ./external_modules/code/FAST-PT
+    #extra_args:
+      #accuracyboost: 5
+      #kmax_boltzmann: 7.5
+      #extrap_kmax: 250.0
 sampler:
   mcmc:
     # ---------------------------------------------------------------------
@@ -414,9 +430,9 @@ sampler:
     # Don't learn if convergence better than...
     learn_proposal_Rminus1_min: 0.03
     # Don't learn if convergence is worse than...
-    learn_proposal_Rminus1_max: 100.
+    learn_proposal_Rminus1_max: 150
     # (even earlier if a param is not in the given covariance matrix)
-    learn_proposal_Rminus1_max_early: 500.
+    learn_proposal_Rminus1_max_early: 300.
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
     # Convergence and stopping
@@ -424,8 +440,10 @@ sampler:
     # ---------------------------------------------------------------------
     # Maximum number of posterior evaluations
     max_samples: .inf
-    Rminus1_stop: 0.015
-    Rminus1_cl_stop: 0.17
+    # Gelman-Rubin R-1 on means
+    Rminus1_stop: 0.02
+    # Gelman-Rubin R-1 on std deviations
+    Rminus1_cl_stop: 0.2
     Rminus1_cl_level: 0.95
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
@@ -461,7 +479,7 @@ sampler:
     # Avoid chain getting suck forever
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------
-    max_tries: 10000
+    max_tries: .inf
     burn_in: 0
     # ---------------------------------------------------------------------
     # ---------------------------------------------------------------------

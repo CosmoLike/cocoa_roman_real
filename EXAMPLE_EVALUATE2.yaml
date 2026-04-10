@@ -9,15 +9,20 @@ likelihood:
   roman_real.combo_3x2pt:
     path: ./external_modules/data/roman_real
     data_file: example1.dataset # that assumes lens = source
-    lmax: 100000            # lmax computed for real space correlation function
-    accuracyboost: 1.0      
+    print_datavector: False
+    print_datavector_file: "./projects/roman_real/chains/theory.modelvector"
+    accuracyboost: 1.0
     integration_accuracy: 0
+    lmax: 100000 # lmax computed for real space correlation function
     kmax_boltzmann: 7.5
     # 1 EE2, 2 Halofit
     non_linear_emul: 2
-    IA_model: 0
+    IA_model: 0 # NLA (0) or TATT (1)
+    IA_code: 0  # CFASTPT (0) or FASTPT (1) (only works if not NLA)
     IA_redshift_evolution: 3
     ggl_exclude: [[6,0],[7,0],[7,1]]
+    debug: false
+    use_baryon_pca: false
     create_baryon_pca: false
     baryon_pca_select_sims: "antilles-2-99/antilles-101-378/antilles-380-400"
     filename_baryon_pca: "./projects/lsst_y1/chains/pca.txt"
@@ -29,8 +34,8 @@ params:
     ref:
       dist: norm
       loc: 2.1
-      scale: 0.65
-    proposal: 0.4
+      scale: 0.2
+    proposal: 0.2
     latex: 10^9 A_\mathrm{s}
     drop: true
     renames: A
@@ -41,8 +46,8 @@ params:
     ref:
       dist: norm
       loc: 0.96605
-      scale: 0.01
-    proposal: 0.01
+      scale: 0.015
+    proposal: 0.015
     latex: n_\mathrm{s}
   H0:
     prior:
@@ -51,7 +56,7 @@ params:
     ref:
       dist: norm
       loc: 67.32
-      scale: 5
+      scale: 3
     proposal: 3
     latex: H_0
   omegab:
@@ -61,8 +66,8 @@ params:
     ref:
       dist: norm
       loc: 0.0495
-      scale: 0.004
-    proposal: 0.004
+      scale: 0.005
+    proposal: 0.005
     latex: \Omega_\mathrm{b}
     drop: true
   omegam:
@@ -72,29 +77,9 @@ params:
     ref:
       dist: norm
       loc: 0.316
-      scale: 0.02
-    proposal: 0.02
+      scale: 0.015
+    proposal: 0.015
     latex: \Omega_\mathrm{m}
-    drop: true
-  mnu:
-    prior:
-      min: 0.06
-      max: 0.6
-    ref:
-      dist: norm
-      loc: 0.25
-      scale: 0.1
-    proposal: 0.05
-  w0pwa:
-    prior:
-      min: -5 
-      max: -0.01
-    ref:
-      dist: norm
-      loc: -0.99
-      scale: 0.05
-    proposal: 0.05
-    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
     drop: true
   w:
     prior:
@@ -106,6 +91,29 @@ params:
       scale: 0.05
     proposal: 0.05
     latex: w_{0,\mathrm{DE}}
+  w0pwa:
+    prior:
+      min: -5 
+      max: -0.01
+    ref:
+      dist: norm
+      loc: -0.99
+      scale: 0.05
+    proposal: 0.05
+    latex: w_{0,\mathrm{DE}}+w_{a,\mathrm{DE}}
+    drop: true
+  wa:
+    value: 'lambda w0pwa, w: w0pwa - w'
+    latex: w_{a,\mathrm{DE}}
+  mnu:
+    prior:
+      min: 0.06
+      max: 0.6
+    ref:
+      dist: norm
+      loc: 0.25
+      scale: 0.1
+    proposal: 0.05
   tau:
     value: 0.0697186
     latex: \tau_\mathrm{reio}
@@ -118,9 +126,6 @@ params:
   As:
     value: 'lambda As_1e9: 1e-9 * As_1e9'
     latex: A_\mathrm{s}
-  wa:
-    value: 'lambda w0pwa, w: w0pwa - w'
-    latex: w_{a,\mathrm{DE}}
   omegabh2:
     value: 'lambda omegab, H0: omegab*(H0/100)**2'
     latex: \Omega_\mathrm{b} h^2
@@ -157,10 +162,11 @@ params:
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # Nuisance parameters below (it overwrites the default settings)
-  # Default settings in likelihood/roman_real_params_lens.yaml
-  # Default settings in likelihood/roman_real_params_source.yaml
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # ------------------------------------------------------------------------
+  # WL photo-z errors
   roman_DZ_S1:
     prior:
       dist: norm
@@ -251,6 +257,7 @@ params:
     latex: \Delta z_\mathrm{s,roman}^8
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
+  # Shear calibration parameters
   roman_M1:
     prior:
       dist: norm
@@ -363,37 +370,34 @@ params:
     proposal: 0.5
     latex: A_\mathrm{1-IA,roman}^2
   roman_A2_1:
-    value: 0.0
-    #prior:
-    #  min: -5
-    #  max:  5
-    #ref:
-    #  dist: norm
-    #  loc: -1.36
-    #  scale: 0.5
-    #proposal: 0.5
+    prior:
+      min: -5
+      max:  5
+    ref:
+      dist: norm
+      loc: -1.36
+      scale: 0.5
+    proposal: 0.5
     latex: A_\mathrm{2-IA,Roman}^1
   roman_A2_2:
-    value: 0.0
-    #prior:
-    #  min: -5
-    #  max:  5
-    #ref:
-    #  dist: norm
-    #  loc: -2.5
-    #  scale: 0.5
-    #proposal: 0.5
+    prior:
+      min: -5
+      max:  5
+    ref:
+      dist: norm
+      loc: -2.5
+      scale: 0.5
+    proposal: 0.5
     latex: A_\mathrm{2-IA,Roman}^2
   roman_BTA_1:
-    value: 0.0
-    #prior:
-    #  min: 0
-    #  max: 2
-    #ref:
-    #  dist: norm
-    #  loc: 1
-    #  scale: 0.15
-    #proposal: 0.1
+    prior:
+      min: 0
+      max: 2
+    ref:
+      dist: norm
+      loc: 1
+      scale: 0.15
+    proposal: 0.1
     latex: A_\mathrm{BTA-IA,Roman}^1
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
@@ -544,9 +548,14 @@ theory:
       lens_potential_accuracy: 1.0
       dark_energy_model: ppf
       accurate_massive_neutrino_transfers: false
-      k_per_logint: 20
-      kmax: 15
-      
+      k_per_logint: 15
+      kmax: 10.0
+#  fastpt:
+#    path: ./external_modules/code/FAST-PT
+    #extra_args:
+      #accuracyboost: 5
+      #kmax_boltzmann: 7.5
+      #extrap_kmax: 250.0     
 sampler:
   evaluate:
     N: 1
@@ -557,6 +566,8 @@ sampler:
       omegab: 0.04
       omegam: 0.3
       mnu: 0.06
+      w0pwa: -1.0
+      w: -1.0
       roman_DZ_S1: 0.0
       roman_DZ_S2: 0.0
       roman_DZ_S3: 0.0
@@ -583,7 +594,10 @@ sampler:
       roman_B1_6: 2.15
       roman_B1_7: 2.52
       roman_B1_8: 2.44
-      w0pwa: -1.0
-      w: -1.0
-
+      # TATT PARAMETERS
+      roman_A2_1: 0.0
+      roman_BTA_1: 0.0
+      roman_A2_2: -1.51541
+#      roman_A2_1: 0.6
+#      roman_BTA_1: 1.01257
 output: ./projects/roman_real/chains/EXAMPLE_EVALUATE2
