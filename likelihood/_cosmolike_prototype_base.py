@@ -29,8 +29,8 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     self.mask_file = ini.relativeFileName('mask_file')
     self.lens_file = ini.relativeFileName('nz_lens_file')
     self.source_file = ini.relativeFileName('nz_source_file')
-    self.lens_ntomo = ini.int("lens_ntomo") #5
-    self.source_ntomo = ini.int("source_ntomo") #4
+    self.lens_ntomo = ini.int("lens_ntomo")
+    self.source_ntomo = ini.int("source_ntomo")
     self.ntheta = ini.int("n_theta")
     self.theta_min_arcmin = ini.float("theta_min_arcmin")
     self.theta_max_arcmin = ini.float("theta_max_arcmin")
@@ -195,10 +195,6 @@ class _cosmolike_prototype_base(DataSetLikelihood):
         "As": None,
         "H0": None,
         "omegam": None,
-        "omegab": None,
-        "mnu": None,
-        "w": None,
-        "wa": None,
         "Pk_interpolator": {
           "z": self.z_interp_2D,
           "k_max": self.kmax_boltzmann * self.accuracyboost,
@@ -206,7 +202,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
           "vars_pairs": ([("delta_tot", "delta_tot")])
         },
         "comoving_radial_distance": {
-          "z": self.z_interp_1D 
+          "z": self.z_interp_1D
         }, # in Mpc
         "Cl": { # DONT REMOVE THIS - SOME WEIRD BEHAVIOR IN CAMB WITHOUT WANTS_CL
           'tt': 0
@@ -216,6 +212,11 @@ class _cosmolike_prototype_base(DataSetLikelihood):
       if (self.IA_code == 1):
         _requirements_["IA_PS"] = None
         _requirements_["bias_PS"] = None
+      if self.non_linear_emul == 1:
+        _requirements_["omegab"] = None
+        _requirements_["mnu"] = None
+        _requirements_["w"] = None
+        _requirements_["wa"] = None
       return _requirements_
 
   # ------------------------------------------------------------------------
@@ -407,7 +408,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-  
+
   def logp(self, **params):
     return self.compute_logp(self.get_datavector(**params))
 
