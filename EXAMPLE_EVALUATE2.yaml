@@ -552,10 +552,10 @@ theory:
       kmax: 10.0
 #  fastpt:
 #    path: ./external_modules/code/FAST-PT
-    #extra_args:
-      #accuracyboost: 5
-      #kmax_boltzmann: 7.5
-      #extrap_kmax: 250.0     
+#    extra_args:
+#      accuracyboost: 1
+#      kmax_boltzmann: 7.5
+#      extrap_kmax: 250.0     
 sampler:
   evaluate:
     N: 1
