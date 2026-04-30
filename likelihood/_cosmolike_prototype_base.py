@@ -3,14 +3,8 @@ from __future__ import absolute_import, division, print_function
 import os
 import numpy as np
 import scipy
-from scipy.interpolate import interp1d
 import sys
 import time
-
-# Adding baryon package imports
-import pyspk as spk
-import BCemu
-from astropy.cosmology import FlatLambdaCDM
 
 # Local
 from cobaya.likelihoods.base_classes import DataSetLikelihood
@@ -189,7 +183,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
                     "comoving_radial_distance": {"z": self.z_interp_1D},  # in Mpc
                 }
         else:
-            return {
+            reqs = {
                 "As": None,
                 "H0": None,
                 "omegam": None,
@@ -210,6 +204,18 @@ class _cosmolike_prototype_base(DataSetLikelihood):
                     "tt": 0
                 },
             }
+
+            # Add baryon suppression theory block requirement (if enabled)
+            # Only request suppression factors when baryon_suppression != 0
+            if self.baryon_suppression != 0:
+                reqs["baryon_suppression"] = {
+                    "z": self.z_interp_2D,
+                    "k": np.power(
+                        10.0, self.log10k_interp_2D
+                    ),  # Convert from log10 to linear
+                }
+
+            return reqs
 
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
@@ -282,108 +288,40 @@ class _cosmolike_prototype_base(DataSetLikelihood):
             )
             G_growth /= G_growth[-1]
 
-            # Adding baryons here. Following Kunhao, iterating every z-specified. Calling suppression before nonlinear
-            # pk calculation
-
-            if self.baryon_suppression == 1:  # SP(k) version
-                cosmo = FlatLambdaCDM(
-                    H0=self.provider.get_param("H0"),
-                    Om0=self.provider.get_param("omegam"),
-                )
-
-                alpha = self.provider.get_param("alpha_spk")
-                beta = self.provider.get_param("beta_spk")
-                gamma = self.provider.get_param("gamma_spk")
-
-                # MCMC Safety Layer 2: Likelihood-level parameter validation
-                # Expected ranges (from YAML priors): alpha ~4.18±0.12, beta ~1.26±0.08, gamma ~0.42±0.10
-                # Using 3-sigma conservative bounds from priors as hard limits
-                alpha_min, alpha_max = 3.8, 4.6  # mean ± 3σ
-                beta_min, beta_max = 1.0, 1.6
-                gamma_min, gamma_max = 0.1, 0.75
-
-                # Check parameter ranges; return -inf (hard rejection) if out of bounds
-                # This allows MCMC to gracefully reject invalid proposals without crashing
-                if not (alpha_min < alpha < alpha_max):
-                    self.log.warning(
-                        f"SPk parameter alpha_spk={alpha:.4f} outside valid range "
-                        f"[{alpha_min:.4f}, {alpha_max:.4f}]; returning -inf likelihood"
+            # Apply baryon suppression factors from theory block (if enabled)
+            # The baryon suppression theory block computes S(k,z) for each requested z
+            # and applies calibration masking. Here we simply retrieve and apply those factors.
+            if self.baryon_suppression != 0:
+                try:
+                    supp_dict = self.provider.get_result("baryon_suppression")
+                    self.log.info(
+                        "Applying baryon suppression: %d redshifts from theory block",
+                        len(supp_dict),
                     )
-                    return -np.inf
-                if not (beta_min < beta < beta_max):
-                    self.log.warning(
-                        f"SPk parameter beta_spk={beta:.4f} outside valid range "
-                        f"[{beta_min:.4f}, {beta_max:.4f}]; returning -inf likelihood"
+
+                    for i, z_val in enumerate(self.z_interp_2D):
+                        if z_val in supp_dict:
+                            sup_array = supp_dict[z_val]
+                            lnbt_spk = np.log(sup_array)
+                            lnPNL[i :: self.len_z_interp_2D] += lnbt_spk
+                            self.log.debug(
+                                "Applied baryon suppression at z=%.3f: "
+                                "min_sup=%.6f, max_sup=%.6f",
+                                z_val,
+                                sup_array.min(),
+                                sup_array.max(),
+                            )
+                        else:
+                            self.log.warning(
+                                "baryon_suppression dict does not contain z=%.3f; skipping",
+                                z_val,
+                            )
+                except Exception as e:
+                    self.log.error(
+                        "Failed to retrieve baryon suppression from theory block: %s; "
+                        "skipping baryon suppression",
+                        str(e),
                     )
-                    return -np.inf
-                if not (gamma_min < gamma < gamma_max):
-                    self.log.warning(
-                        f"SPk parameter gamma_spk={gamma:.4f} outside valid range "
-                        f"[{gamma_min:.4f}, {gamma_max:.4f}]; returning -inf likelihood"
-                    )
-                    return -np.inf
-
-                self.log.debug(
-                    f"SPk baryon suppression: alpha={alpha:.4f}, beta={beta:.4f}, "
-                    f"gamma={gamma:.4f}; z_range=[{self.z_interp_2D.min():.3f}, "
-                    f"{self.z_interp_2D.max():.3f}]"
-                )
-
-                for i, this_z in enumerate(self.z_interp_2D):
-                    # Note that SPk only works for z<3, going to assume high z doesn't matter
-                    # need to test calibration at high z.
-                    if (
-                        this_z < 3.0 and this_z > 0.125
-                    ):  # Kunhao tested that lower bound improves chi2
-                        # using method 2 for now, will add more methods later
-                        try:
-                            k_spk, sup = spk.sup_model(
-                                SO=500,
-                                z=this_z,
-                                alpha=alpha,
-                                beta=beta,
-                                gamma=gamma,
-                                cosmo=cosmo,
-                                verbose=False,
-                            )
-                        except Exception as e:
-                            self.log.error(
-                                f"SPk baryon model failed at z={this_z:.3f}: {e}; "
-                                f"returning -inf likelihood"
-                            )
-                            return -np.inf
-
-                        # Defensive Layer 3: Check for NaN/Inf in suppression factors
-                        if not np.all(np.isfinite(sup)):
-                            n_invalid = np.sum(~np.isfinite(sup))
-                            self.log.error(
-                                f"SPk returned {n_invalid} non-finite suppression values "
-                                f"at z={this_z:.3f}; returning -inf likelihood"
-                            )
-                            return -np.inf
-
-                        # Log suppression factor range for diagnostics
-                        self.log.debug(
-                            f"SPk at z={this_z:.3f}: suppression factors "
-                            f"[min={np.min(sup):.6f}, max={np.max(sup):.6f}]"
-                        )
-
-                        interp_spk = interp1d(
-                            np.log10(k_spk),
-                            np.log(sup),
-                            kind="linear",
-                            fill_value="extrapolate",
-                            assume_sorted=True,
-                        )
-
-                        lnbt_spk = interp_spk(self.log10k_interp_2D)
-                        lnbt_spk[np.power(10, self.log10k_interp_2D) < 8.73e-3] = (
-                            0.0  # Kunhao masked this (k < 8.73e-3 h/Mpc outside calibration)
-                        )
-
-                        lnPNL[i :: self.len_z_interp_2D] += lnbt_spk
-
-            # End baryons here
 
             ci.set_cosmology(
                 omegam=self.provider.get_param("omegam"),

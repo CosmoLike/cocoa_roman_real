@@ -432,6 +432,11 @@ theory:
       accurate_massive_neutrino_transfers: false
       k_per_logint: 10
       kmax: 10
+  # Baryon suppression theory block (new)
+  baryon_suppression:
+    python_path: ./projects/roman_real
+    class: pyspk_theory.BaryonSuppression
+    baryon_model: 1  # 1=pyspk, 2=bcemu (deferred), 3=pca (deferred)
 
 sampler:
   evaluate:
