@@ -45,7 +45,7 @@ class BaryonSuppression(Theory):
     # Define the parameters this theory class needs to evaluate.
     params = {
         "alpha_spk": None,  # Alpha parameter for pyspk model
-        "beta_spk": None,   # Beta parameter for pyspk model
+        "beta_spk": None,  # Beta parameter for pyspk model
         "gamma_spk": None,  # Gamma parameter for pyspk model
     }
 
@@ -66,7 +66,7 @@ class BaryonSuppression(Theory):
 
         # pyspk Calibration ranges (from Kunhao's testing/tuning)
         self.z_min_calib = 0.125  # Below this, pyspk not well-calibrated
-        self.z_max_calib = 3.0    # Above this, pyspk not well-calibrated
+        self.z_max_calib = 3.0  # Above this, pyspk not well-calibrated
         self.k_min_calib = 8.73e-3  # h/Mpc; below this, outside calibration
 
         # Parameter validation bounds (3-sigma conservative from YAML priors)
@@ -78,7 +78,10 @@ class BaryonSuppression(Theory):
         self.log.debug(
             "BaryonSuppression: Initialized with baryon_model=%d, "
             "z_calibration=[%.3f, %.3f], k_min_calib=%.3e h/Mpc",
-            self.baryon_model, self.z_min_calib, self.z_max_calib, self.k_min_calib
+            self.baryon_model,
+            self.z_min_calib,
+            self.z_max_calib,
+            self.k_min_calib,
         )
 
     def get_requirements(self):
@@ -88,9 +91,9 @@ class BaryonSuppression(Theory):
         Returns:
             list: Required products from other theory blocks
                 - "H0": Hubble constant (for cosmology)
-                - "Omega_m": Matter density (for cosmology)
+                - "omegam": Matter density (for cosmology)
         """
-        return ["H0", "Omega_m"]
+        return ["H0", "omegam"]
 
     def must_provide(self, **requirements):
         """
@@ -118,8 +121,7 @@ class BaryonSuppression(Theory):
             requested_z = req.get("z", None)
             if requested_z is None:
                 raise LoggedError(
-                    self.log,
-                    "baryon_suppression requires 'z' array in requirements"
+                    self.log, "baryon_suppression requires 'z' array in requirements"
                 )
             self.requested_z = np.atleast_1d(requested_z)
 
@@ -127,8 +129,7 @@ class BaryonSuppression(Theory):
             requested_k = req.get("k", None)
             if requested_k is None:
                 raise LoggedError(
-                    self.log,
-                    "baryon_suppression requires 'k' array in requirements"
+                    self.log, "baryon_suppression requires 'k' array in requirements"
                 )
             self.requested_k = np.atleast_1d(requested_k)
 
@@ -137,8 +138,12 @@ class BaryonSuppression(Theory):
             self.log.info(
                 "BaryonSuppression.must_provide: baryon_suppression requested; "
                 "n_z=%d [%.3f, %.3f], n_k=%d [%.3e, %.3e]",
-                n_z, self.requested_z.min(), self.requested_z.max(),
-                n_k, self.requested_k.min(), self.requested_k.max()
+                n_z,
+                self.requested_z.min(),
+                self.requested_z.max(),
+                n_k,
+                self.requested_k.min(),
+                self.requested_k.max(),
             )
 
     def calculate(self, state, want_derived=True, **params_values_dict):
@@ -182,14 +187,14 @@ class BaryonSuppression(Theory):
             suppression_dict = self._unity_suppression()
         elif self.baryon_model == 3:
             self.log.warning(
-                "baryon_model=3 (PCA) not yet implemented; "
-                "returning unity suppression"
+                "baryon_model=3 (PCA) not yet implemented; returning unity suppression"
             )
             suppression_dict = self._unity_suppression()
         else:
             self.log.error(
                 "baryon_model=%d is invalid; must be 1 (pyspk), 2 (bcemu), or 3 (pca); "
-                "returning unity suppression", self.baryon_model
+                "returning unity suppression",
+                self.baryon_model,
             )
             suppression_dict = self._unity_suppression()
 
@@ -218,7 +223,9 @@ class BaryonSuppression(Theory):
 
             self.log.debug(
                 "SPk baryon suppression: alpha=%.4f, beta=%.4f, gamma=%.4f",
-                alpha, beta, gamma
+                alpha,
+                beta,
+                gamma,
             )
 
             # 2. Validate parameters are within acceptable ranges (3-sigma bounds)
@@ -228,7 +235,9 @@ class BaryonSuppression(Theory):
                 self.log.warning(
                     "SPk parameter alpha_spk=%.4f outside valid range "
                     "[%.4f, %.4f]; returning unity suppression",
-                    alpha, self.alpha_min, self.alpha_max
+                    alpha,
+                    self.alpha_min,
+                    self.alpha_max,
                 )
                 return self._unity_suppression()
 
@@ -236,7 +245,9 @@ class BaryonSuppression(Theory):
                 self.log.warning(
                     "SPk parameter beta_spk=%.4f outside valid range "
                     "[%.4f, %.4f]; returning unity suppression",
-                    beta, self.beta_min, self.beta_max
+                    beta,
+                    self.beta_min,
+                    self.beta_max,
                 )
                 return self._unity_suppression()
 
@@ -244,18 +255,18 @@ class BaryonSuppression(Theory):
                 self.log.warning(
                     "SPk parameter gamma_spk=%.4f outside valid range "
                     "[%.4f, %.4f]; returning unity suppression",
-                    gamma, self.gamma_min, self.gamma_max
+                    gamma,
+                    self.gamma_min,
+                    self.gamma_max,
                 )
                 return self._unity_suppression()
 
             # 3. Fetch cosmological parameters from provider (e.g., CAMB/CLASS)
             H0 = self.provider.get_param("H0")
-            Omega_m = self.provider.get_param("Omega_m")
-            cosmo = FlatLambdaCDM(H0=H0, Om0=Omega_m)
+            omegam = self.provider.get_param("omegam")
+            cosmo = FlatLambdaCDM(H0=H0, Om0=omegam)
 
-            self.log.debug(
-                "SPk cosmology: H0=%.3f, Omega_m=%.4f", H0, Omega_m
-            )
+            self.log.debug("SPk cosmology: H0=%.3f, omegam=%.4f", H0, omegam)
 
             # 4. Compute suppression for each requested redshift
             suppression_dict = {}
@@ -266,8 +277,10 @@ class BaryonSuppression(Theory):
                 if z_val < self.z_min_calib or z_val > self.z_max_calib:
                     self.log.debug(
                         "SPk z=%.3f outside calibration range [%.3f, %.3f]; "
-                        "using unity suppression for this redshift", 
-                        z_val, self.z_min_calib, self.z_max_calib
+                        "using unity suppression for this redshift",
+                        z_val,
+                        self.z_min_calib,
+                        self.z_max_calib,
                     )
                     suppression_dict[z_val] = np.ones_like(self.requested_k)
                     continue
@@ -287,7 +300,9 @@ class BaryonSuppression(Theory):
                 except Exception as e:
                     self.log.error(
                         "SPk model failed at z=%.3f: %s; "
-                        "using unity suppression for this redshift", z_val, str(e)
+                        "using unity suppression for this redshift",
+                        z_val,
+                        str(e),
                     )
                     suppression_dict[z_val] = np.ones_like(self.requested_k)
                     continue
@@ -300,7 +315,9 @@ class BaryonSuppression(Theory):
                         "SPk returned non-finite values at z=%.3f: "
                         "%d bad k-values, %d bad suppression values; "
                         "using unity suppression for this redshift",
-                        z_val, n_bad_k, n_bad_sup
+                        z_val,
+                        n_bad_k,
+                        n_bad_sup,
                     )
                     suppression_dict[z_val] = np.ones_like(self.requested_k)
                     continue
@@ -309,8 +326,11 @@ class BaryonSuppression(Theory):
                 self.log.debug(
                     "SPk at z=%.3f: k_range=[%.3e, %.3e], "
                     "suppression_range=[%.6f, %.6f]",
-                    z_val, k_spk.min(), k_spk.max(),
-                    sup_spk.min(), sup_spk.max()
+                    z_val,
+                    k_spk.min(),
+                    k_spk.max(),
+                    sup_spk.min(),
+                    sup_spk.max(),
                 )
 
                 # 5. Interpolate pyspk suppression onto likelihood's k-grid
@@ -328,7 +348,9 @@ class BaryonSuppression(Theory):
                 except Exception as e:
                     self.log.error(
                         "Interpolation failed at z=%.3f: %s; "
-                        "using unity suppression for this redshift", z_val, str(e)
+                        "using unity suppression for this redshift",
+                        z_val,
+                        str(e),
                     )
                     suppression_dict[z_val] = np.ones_like(self.requested_k)
                     continue
@@ -342,7 +364,9 @@ class BaryonSuppression(Theory):
                     n_bad = np.sum(~np.isfinite(sup_interp))
                     self.log.error(
                         "Interpolation produced %d non-finite values at z=%.3f; "
-                        "using unity suppression for this redshift", n_bad, z_val
+                        "using unity suppression for this redshift",
+                        n_bad,
+                        z_val,
                     )
                     suppression_dict[z_val] = np.ones_like(self.requested_k)
                     continue
@@ -355,7 +379,9 @@ class BaryonSuppression(Theory):
                     self.log.warning(
                         "SPk at z=%.3f produced %d values < 0.01 (clipping to 0.01) "
                         "and %d values > 1.0 (clipping to 1.0)",
-                        z_val, n_low, n_high
+                        z_val,
+                        n_low,
+                        n_high,
                     )
                     sup_interp = np.clip(sup_interp, 0.01, 1.0)
 
@@ -363,7 +389,8 @@ class BaryonSuppression(Theory):
 
             self.log.info(
                 "SPk suppression computed for %d redshifts, %d k-values",
-                len(suppression_dict), len(self.requested_k)
+                len(suppression_dict),
+                len(self.requested_k),
             )
             return suppression_dict
 
@@ -371,7 +398,8 @@ class BaryonSuppression(Theory):
             # Catch-all: any uncaught exception → graceful degradation
             self.log.error(
                 "Uncaught exception in SPk calculation: %s; "
-                "returning unity suppression", str(e)
+                "returning unity suppression",
+                str(e),
             )
             return self._unity_suppression()
 
