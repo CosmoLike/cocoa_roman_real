@@ -7,16 +7,23 @@ likelihood:
     use_emulator: 2
     path: ./external_modules/data/roman_real
     data_file: example1.dataset # that assumes lens = source
-    lmax: 70000 # gg in Roman that requires higher lmax
+    print_datavector: False
+    print_datavector_file: "./projects/roman_real/chains/theory.modelvector"
     accuracyboost: 1.0
     integration_accuracy: 0
+    lmax: 75000 # gg in Roman that requires higher lmax
     kmax_boltzmann: 7.5
     # 1 EE2, 2 Halofit
     non_linear_emul: 2
     IA_model: 0
+    IA_code: 0    # CFASTPT (0) or FASTPT (1) (only works if not NLA)
     IA_redshift_evolution: 3
-    print_datavector: False
     ggl_exclude: [[6,0],[7,0],[7,1]]
+    debug: false
+    use_baryon_pca: false
+    create_baryon_pca: false
+    baryon_pca_select_sims: "antilles-2-99/antilles-101-378/antilles-380-400"
+    filename_baryon_pca: "./projects/lsst_y1/chains/pca.txt"
 params:
   As_1e9:
     prior:
@@ -370,7 +377,9 @@ theory:
     path: ./cobaya/cobaya/theories/
     stop_at_error: True
     extra_args:
-      use_syren: True
+      use_syren: False
+      model_file:    "external_modules/data/emultrf/emulmps/npce_emul/emulator_npce.keras"
+      metadata_file: "external_modules/data/emultrf/emulmps/npce_emul/metadata.joblib"
       param_order: ["As_1e9", "ns", "H0", "omegab", "omegam", 'w', 'wa']
 sampler:
   evaluate:

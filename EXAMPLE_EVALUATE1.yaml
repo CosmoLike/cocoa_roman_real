@@ -4,6 +4,7 @@ stop_at_error: False
 
 likelihood:
   roman_real.cosmic_shear:
+    use_emulator: 0
     path: ./external_modules/data/roman_real
     data_file: example1.dataset # that assumes lens = source
     print_datavector: False
@@ -411,7 +412,7 @@ theory:
 #  fastpt:
 #    path: ./external_modules/code/FAST-PT
 #    extra_args:
-#      accuracyboost: 5
+#      accuracyboost: 10
 #      kmax_boltzmann: 7.5
 #      extrap_kmax: 250.0
 sampler:

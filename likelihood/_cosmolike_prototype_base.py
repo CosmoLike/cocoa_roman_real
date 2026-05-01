@@ -15,6 +15,13 @@ import euclidemu2 as ee2
 import math
 
 import cosmolike_roman_real_interface as ci
+from contextlib import contextmanager
+
+@contextmanager
+def timer(label):
+  t0 = time.perf_counter()
+  yield
+  print(f"{label}: {time.perf_counter() - t0:.4f}s")
 
 survey = "roman"
 
@@ -42,8 +49,9 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     self.len_z_interp_1D = len(self.z_interp_1D)
 
     tmp=int(min(120 + 20*self.accuracyboost,250))
+    # zmax of the hybrid emulator is 50 (why 50? Only relevant if CMB lensing included)
     self.z_interp_2D = np.concatenate((np.linspace(0,3.0,max(50,int(0.75*tmp))), 
-                                       np.linspace(3.01,50.1,max(30,int(0.25*tmp)))),axis=0)
+                                       np.linspace(3.01,49.99,max(30,int(0.25*tmp)))),axis=0)
     self.len_z_interp_2D = len(self.z_interp_2D)
     
     self.log10k_interp_2D = np.linspace(-4.99,2.0,int(1250+250*self.accuracyboost))
@@ -229,6 +237,8 @@ class _cosmolike_prototype_base(DataSetLikelihood):
                                                nonlinear=False, 
                                                extrap_kmin=1e-6,
                                                extrap_kmax=2.5e2*self.accuracyboost)
+      
+      
       lnPL = PKL.logP(self.z_interp_2D,
                       np.power(10.0,self.log10k_interp_2D)).flatten(order='F')+np.log(h**3)
 
@@ -311,12 +321,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
                        cutoff=FPTIA_kcut, 
                        sigma4=sigma4, 
                        N=len(FPTIA[0]))
-    else:
-      ci.set_distances(
-        z=self.z_interp_1D,
-        chi=self.provider.get_comoving_radial_distance(self.z_interp_1D)*h
-      )
-
+  
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------

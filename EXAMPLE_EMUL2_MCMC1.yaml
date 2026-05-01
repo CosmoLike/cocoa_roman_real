@@ -7,13 +7,14 @@ likelihood:
     use_emulator: 2
     path: ./external_modules/data/roman_real
     data_file: example1.dataset # that assumes lens = source
-    lmax: 70000 # gg in Roman that requires higher lmax
     accuracyboost: 1.0
     integration_accuracy: 0
+    lmax: 75000 # gg in Roman that requires higher lmax
     kmax_boltzmann: 7.5
     # 1 EE2, 2 Halofit
     non_linear_emul: 2
     IA_model: 0
+    IA_code: 0    # CFASTPT (0) or FASTPT (1) (only works if not NLA)
     IA_redshift_evolution: 3
     print_datavector: False
     ggl_exclude: [[6,0],[7,0],[7,1]]
@@ -356,7 +357,9 @@ theory:
     path: ./cobaya/cobaya/theories/
     stop_at_error: True
     extra_args:
-      use_syren: True
+      use_syren: False
+      model_file:    "external_modules/data/emultrf/emulmps/npce_emul/emulator_npce.keras"
+      metadata_file: "external_modules/data/emultrf/emulmps/npce_emul/metadata.joblib"
       param_order: ["As_1e9", "ns", "H0", "omegab", "omegam", 'w', 'wa']
 sampler:
   mcmc:
@@ -392,12 +395,32 @@ sampler:
     Rminus1_cl_level: 0.95
     # --------------------------------------
     # --------------------------------------
-    # Exploiting speed hierarchy
+    # Exploiting speed hierarchy (of mainly cosmolike)
     # --------------------------------------
     # --------------------------------------
     measure_speeds: False
-    oversample_power: 0.0
     drag: False
+    oversample_power: 0.2
+    oversample_thin: True
+    blocking:
+    - [5,
+        [
+          As_1e9, ns, H0, omegab, omegam
+        ]
+      ]
+    - [10,
+        [
+          roman_DZ_S1, roman_DZ_S2, roman_DZ_S3, roman_DZ_S4, 
+          roman_DZ_S5, roman_DZ_S6, roman_DZ_S7, roman_DZ_S8,
+          roman_A1_1, roman_A1_2
+        ]
+      ]
+    - [50,
+        [
+          roman_M1, roman_M2, roman_M3, roman_M4, 
+          roman_M5, roman_M6, roman_M7, roman_M8,
+        ]
+      ]    
     # --------------------------------------
     # --------------------------------------
     # Avoid chain getting suck forever
