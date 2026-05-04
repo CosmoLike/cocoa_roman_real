@@ -16,7 +16,6 @@ import math
 
 import cosmolike_roman_real_interface as ci
 from contextlib import contextmanager
-
 @contextmanager
 def timer(label):
   t0 = time.perf_counter()

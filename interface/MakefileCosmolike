@@ -34,6 +34,9 @@ PYBIND := 1
 # LINK HDF5 LIBRARY
 HDF5 := 1
 
+# LINK TO SIMDE LIBRARY
+SIMDE := 1
+
 CSOURCES :=
 OBJECTC :=
 LDFLAGS := 
@@ -41,6 +44,7 @@ LDLIBS :=
 
 CPPSOURCES =
 OBJECTCPP =
+VEC_FLAGS =
 
 CFLAGS = -std=gnu99 -I ${ROOTDIR}/.local/include/ -I ${ROOTDIR}/external_modules/code/
 CXXFLAGS = -std=c++20  -I ${ROOTDIR}/.local/include/ -I ${ROOTDIR}/external_modules/code/
@@ -58,6 +62,7 @@ else
 	COMMON_FLAGS += -O3 -march=native -fno-fast-math -fno-associative-math -frounding-math
 	ifeq ($(PYOS),Darwin)
 	  COMMON_FLAGS += -fopenmp -ftrapping-math
+	  #VEC_FLAGS += -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize
 	else
 	  COMMON_FLAGS += -fopenmp -ftrapping-math -fsignaling-nans
 	endif
@@ -89,6 +94,12 @@ ifdef GSL
 		LDFLAGS += -L$(GLOBAL_PACKAGES_LOCATION)/lib
 	endif
 	LDLIBS += -lgsl -lgslcblas
+endif
+
+ifdef SIMDE
+	COMMON_FLAGS += -I ${ROOTDIR}/external_modules/code/simde
+else
+	COMMON_FLAGS += -DCOSMO2D_NOT_USE_SIMD
 endif
 
 ifdef FMT
@@ -125,7 +136,7 @@ ifdef SPDLOG
 	endif
 endif
 
-CFLAGS += ${COMMON_FLAGS}
+CFLAGS += ${COMMON_FLAGS} ${VEC_FLAGS}
 CXXFLAGS += ${COMMON_FLAGS}
 
 ifdef PYBIND
