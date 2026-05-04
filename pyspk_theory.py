@@ -76,6 +76,15 @@ class BaryonSuppression(Theory):
         self.beta_min, self.beta_max = 1.0, 1.6
         self.gamma_min, self.gamma_max = 0.1, 0.75
 
+        # Parameter validation bounds for BCEmu (based on Giri+ 2021 and reasonable extensions)
+        self.log10Mc_min, self.log10Mc_max = 11.0, 15.0
+        self.mu_min, self.mu_max = 0.0, 2.0
+        self.thej_min, self.thej_max = 2.0, 8.0
+        self.gamma_min, self.gamma_max = 1.0, 4.0
+        self.delta_min, self.delta_max = 3.0, 11.0
+        self.eta_min, self.eta_max = 0.05, 4.0
+        self.deta_min, self.deta_max = 0.05, 4.0
+
         self.log.debug(
             "BaryonSuppression: Initialized with baryon_model=%d, "
             "z_calibration=[%.3f, %.3f], k_min_calib=%.3e h/Mpc",
@@ -93,8 +102,9 @@ class BaryonSuppression(Theory):
             list: Required products from other theory blocks
                 - "H0": Hubble constant (for cosmology)
                 - "omegam": Matter density (for cosmology)
+                - "omegab": Baryon density (for BCEmu)
         """
-        return ["H0", "omegam"]
+        return ["H0", "omegam", "omegab"]
 
     def must_provide(self, **requirements):
         """
@@ -181,11 +191,7 @@ class BaryonSuppression(Theory):
         if self.baryon_model == 1:
             suppression_dict = self._calculate_pyspk(params_values_dict)
         elif self.baryon_model == 2:
-            self.log.warning(
-                "baryon_model=2 (BCEmu) not yet implemented; "
-                "returning unity suppression"
-            )
-            suppression_dict = self._unity_suppression()
+            suppression_dict = self._calculate_bcemu(params_values_dict)
         elif self.baryon_model == 3:
             self.log.warning(
                 "baryon_model=3 (PCA) not yet implemented; returning unity suppression"
@@ -434,6 +440,70 @@ class BaryonSuppression(Theory):
             delta_bcemu = params_values_dict.get("delta_bcemu", 7.0)
             eta_bcemu = params_values_dict.get("eta_bcemu", 2.0)
             deta_bcemu = params_values_dict.get("deta_bcemu", 2.0)
+
+            if not (self.log10Mc_bcemu_min < log10Mc_bcemu < self.log10Mc_max):
+                self.log.warning(
+                    "BCEmu parameter log10Mc_bcemu=%.4f outside valid range "
+                    "[%.4f, %.4f]; returning unity suppression",
+                    log10Mc_bcemu,
+                    self.log10Mc_bcemu_min,
+                    self.log10Mc_bcemu_max,
+                )
+                return self._unity_suppression()
+            if not (self.mu_min < mu_bcemu < self.mu_max):
+                self.log.warning(
+                    "BCEmu parameter mu_bcemu=%.4f outside valid range "
+                    "[%.4f, %.4f]; returning unity suppression",
+                    mu_bcemu,
+                    self.mu_min,
+                    self.mu_max,
+                )
+                return self._unity_suppression()
+            if not (self.thej_min < thej_bcemu < self.thej_max):
+                self.log.warning(
+                    "BCEmu parameter thej_bcemu=%.4f outside valid range "
+                    "[%.4f, %.4f]; returning unity suppression",
+                    thej_bcemu,
+                    self.thej_min,
+                    self.thej_max,
+                )
+                return self._unity_suppression()
+            if not (self.gamma_min < gamma_bcemu < self.gamma_max):
+                self.log.warning(
+                    "BCEmu parameter gamma_bcemu=%.4f outside valid range "
+                    "[%.4f, %.4f]; returning unity suppression",
+                    gamma_bcemu,
+                    self.gamma_min,
+                    self.gamma_max,
+                )
+                return self._unity_suppression()
+            if not (self.delta_min < delta_bcemu < self.delta_max):
+                self.log.warning(
+                    "BCEmu parameter delta_bcemu=%.4f outside valid range "
+                    "[%.4f, %.4f]; returning unity suppression",
+                    delta_bcemu,
+                    self.delta_min,
+                    self.delta_max,
+                )
+                return self._unity_suppression()
+            if not (self.eta_min < eta_bcemu < self.eta_max):
+                self.log.warning(
+                    "BCEmu parameter eta_bcemu=%.4f outside valid range "
+                    "[%.4f, %.4f]; returning unity suppression",
+                    eta_bcemu,
+                    self.eta_min,
+                    self.eta_max,
+                )
+                return self._unity_suppression()
+            if not (self.deta_min < deta_bcemu < self.deta_max):
+                self.log.warning(
+                    "BCEmu parameter deta_bcemu=%.4f outside valid range "
+                    "[%.4f, %.4f]; returning unity suppression",
+                    deta_bcemu,
+                    self.deta_min,
+                    self.deta_max,
+                )
+                return self._unity_suppression()
 
             bcmdict = {
                 "log10Mc": log10Mc_bcemu,
