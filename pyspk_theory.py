@@ -2,27 +2,28 @@
 Baryon Feedback Suppression Theory Block for Cobaya/Cocoa
 
 Provides baryon feedback effects on the matter power spectrum using external
-baryon feedback models (pyspk, BCEmu, or PCA). This theory block computes
-suppression factors S(k,z) that are applied to the linear power spectrum.
+baryon feedback models (pyspk, BCEmu, or Flamingo). This theory block computes
+suppression factors S(k,z) that are applied to the nonlinear power spectrum.
 
 Physics Background:
     Baryon feedback processes (e.g., AGN heating, stellar feedback) suppress
     the power spectrum on small scales (k > 0.1 h/Mpc) through ejection of
     baryonic matter from overdense regions. The suppression factor S(k,z) < 1
-    quantifies this effect: P_nl(k,z) = S(k,z) * P_linear(k,z)
+    quantifies this effect: P_nl(k,z) = S(k,z) * P_DMO(k,z)
 
     References:
-    - pyspk: Mead+ 2015 (arXiv:1505.07833) — "BCEMU: A Fast Emulator of
-      Baryon Physics for the matter power spectrum"
-    - SPk parameterization: Mead+ 2021 — Direct baryon feedback model
+    - pyspk: Salcido+ 2015 (arXiv:2305.09710)
+    — BCEmu: Giri+ 2021 (arxiv:2108.08863)
+    - Flamingo: Schaller+ 2025 (arxiv:2410.17109)
 
-Author: Integration with Cobaya/Cocoa framework
+Author: Nihar Dalal, Kunhao Zhong, CoCoA Developers
 Date: April 2026
 """
 
 import numpy as np
 import logging
 import pyspk as spk
+import BCemu
 from scipy.interpolate import interp1d
 from astropy.cosmology import FlatLambdaCDM
 from cobaya.theory import Theory
@@ -419,6 +420,85 @@ class BaryonSuppression(Theory):
             # Catch-all: any uncaught exception → graceful degradation
             self.log.error(
                 "Uncaught exception in SPk calculation: %s; "
+                "returning unity suppression",
+                str(e),
+            )
+            return self._unity_suppression()
+
+    def _calculate_bcemu(self, params_values_dict):
+        try:
+            log10Mc_bcemu = params_values_dict.get("log10Mc_bcemu", 13.0)
+            mu_bcemu = params_values_dict.get("mu_bcemu", 1.0)
+            thej_bcemu = params_values_dict.get("thej_bcemu", 5.0)
+            gamma_bcemu = params_values_dict.get("gamma_bcemu", 2.5)
+            delta_bcemu = params_values_dict.get("delta_bcemu", 7.0)
+            eta_bcemu = params_values_dict.get("eta_bcemu", 2.0)
+            deta_bcemu = params_values_dict.get("deta_bcemu", 2.0)
+
+            bcmdict = {
+                "log10Mc": log10Mc_bcemu,
+                "mu": mu_bcemu,
+                "thej": thej_bcemu,
+                "gamma": gamma_bcemu,
+                "delta": delta_bcemu,
+                "eta": eta_bcemu,
+                "deta": deta_bcemu,
+            }
+
+            bfcemu = BCemu.BCM_7param(
+                Ob=self.provider.get_param("omegab"),
+                Om=self.provider.get_param("omegam"),
+            )
+            kmin_bcemu = 0.034  # from BCemu
+            kmax_bcemu = 12.517  # from BCemu
+            logkmin_bcemu = np.log10(kmin_bcemu)
+            logkmax_bcemu = np.log10(kmax_bcemu)
+            suppression_dict = {}
+            for i_z, z_val in enumerate(self.requested_z):
+                # Check if redshift is within BCEmu calibration range
+                # (BCEmu is calibrated for z=0-2; outside this, we return unity)
+                if z_val < 0.0 or z_val > 2.0:
+                    self.log.debug(
+                        "BCEmu z=%.3f outside calibration range [0.0, 2.0]; "
+                        "using unity suppression for this redshift",
+                        z_val,
+                    )
+                    suppression_dict[z_val] = np.ones_like(self.requested_k)
+                    continue
+
+                try:
+                    k_bcemu = 10 ** np.linspace(
+                        logkmin_bcemu, logkmax_bcemu, 100
+                    )  # h/Mpc
+                    sup_bcemu = bfcemu.get_boost(z_val, bcmdict, k_bcemu)
+
+                    # Interpolate BCEmu suppression onto requested k-grid
+                    interp_bcemu = interp1d(
+                        np.log10(k_bcemu),
+                        np.log(sup_bcemu),
+                        kind="linear",
+                        fill_value="extrapolate",
+                        bounds_error=False,
+                        assume_sorted=True,
+                    )
+                    sup_interp = np.exp(interp_bcemu(np.log10(self.requested_k)))
+
+                    suppression_dict[z_val] = sup_interp
+
+                except Exception as e:
+                    self.log.error(
+                        "BCEmu model failed at z=%.3f: %s; "
+                        "using unity suppression for this redshift",
+                        z_val,
+                        str(e),
+                    )
+                    suppression_dict[z_val] = np.ones_like(self.requested_k)
+                    continue
+
+        except Exception as e:
+            # Catch-all: any uncaught exception → graceful degradation
+            self.log.error(
+                "Uncaught exception in BCEmu calculation: %s; "
                 "returning unity suppression",
                 str(e),
             )
