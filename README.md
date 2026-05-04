@@ -270,7 +270,7 @@ Now, users must follow all the steps below.
   The scripts that generated the plots below are provided at `scripts/EXAMPLE_PLOT_MIN_COMPARE_CONV[1-2].py`
 
   <p align="center">
-  <img width="750" height="750" alt="compare_min_roman_real" src="https://github.com/user-attachments/assets/1db89ed7-c186-4967-85a6-1f9b59e1f3ce" />
+  <img width="750" height="500" alt="compare_min_roman_real" src="https://github.com/user-attachments/assets/1db89ed7-c186-4967-85a6-1f9b59e1f3ce" />
   </p>
 
   In our testing, $n_{\\rm stw} \sim 250$ worked reasonably well up to $n_{\rm param} \sim \mathcal{O}(10)$.
@@ -309,7 +309,7 @@ Now, users must follow all the steps below.
   Profile 1: `Cosmic Shear only (plus weak Gaussian priors)`
 
   <p align="center">
-  <img width="750" height="750" alt="example_lssty1_profile1" src="https://github.com/user-attachments/assets/2fea9d3c-524a-49d9-ae89-cb2bb26594e9" />
+  <img width="750" height="500" alt="example_lssty1_profile1" src="https://github.com/user-attachments/assets/2fea9d3c-524a-49d9-ae89-cb2bb26594e9" />
   </p>
 
 > [!Warning]
