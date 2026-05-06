@@ -7,6 +7,7 @@ likelihood:
   #roman_real.combo_xi_ggl:
   #roman_real.combo_xi_gg:
   roman_real.combo_3x2pt:
+    use_emulator: 2
     path: ./external_modules/data/roman_real
     data_file: example1.dataset # that assumes lens = source
     print_datavector: False
@@ -37,7 +38,6 @@ params:
       scale: 0.2
     proposal: 0.2
     latex: 10^9 A_\mathrm{s}
-    drop: true
     renames: A
   ns:
     prior:
@@ -69,7 +69,6 @@ params:
       scale: 0.005
     proposal: 0.005
     latex: \Omega_\mathrm{b}
-    drop: true
   omegam:
     prior:
       min: 0.1
@@ -80,7 +79,6 @@ params:
       scale: 0.015
     proposal: 0.015
     latex: \Omega_\mathrm{m}
-    drop: true
   w:
     prior:
       min: -3
@@ -106,23 +104,7 @@ params:
     value: 'lambda w0pwa, w: w0pwa - w'
     latex: w_{a,\mathrm{DE}}
   mnu:
-    prior:
-      min: 0.06
-      max: 0.6
-    ref:
-      dist: norm
-      loc: 0.25
-      scale: 0.1
-    proposal: 0.05
-  tau:
-    value: 0.0697186
-    latex: \tau_\mathrm{reio}
-  # ---------------------------------------------------------------------------------------
-  # ------------------------------------- DERIVED PARAMETERS ------------------------------
-  # ---------------------------------------------------------------------------------------
-  # WARNING: DO NOT REMOVE omegabh2/omegach2/omegamh2/wa/As/ FROM DERIVED PARAMETERS
-  # SEE: github.com/CosmoLike/cocoa#warning-warning-warning-weak-lensing-yaml-files-in-cobaya-
-  # --------------------------------------------------------------------------------------- 
+    value: 0.06
   As:
     value: 'lambda As_1e9: 1e-9 * As_1e9'
     latex: A_\mathrm{s}
@@ -132,33 +114,6 @@ params:
   omegach2:
     value: 'lambda omegam, omegab, mnu, H0: (omegam-omegab)*(H0/100)**2-(mnu*(3.046/3)**0.75)/94.0708'
     latex: \Omega_\mathrm{c} h^2
-  omegal:
-    latex: \Omega_\Lambda
-  omegamh2:
-    derived: 'lambda omegam, H0: omegam*(H0/100)**2'
-    latex: \Omega_\mathrm{m} h^2
-  sigma8:
-    latex: \sigma_8
-  s8h5:
-    derived: 'lambda sigma8, H0: sigma8*(H0*1e-2)**(-0.5)'
-    latex: \sigma_8/h^{0.5}
-  s8omegamp5:
-    derived: 'lambda sigma8, omegam: sigma8*omegam**0.5'
-    latex: \sigma_8 \Omega_\mathrm{m}^{0.5}
-  s8omegamp25:
-    derived: 'lambda sigma8, omegam: sigma8*omegam**0.25'
-    latex: \sigma_8 \Omega_\mathrm{m}^{0.25}
-  age:
-    latex: '{\rm{Age}}/\mathrm{Gyr}'
-  rdrag:
-    latex: r_\mathrm{drag}
-  yheused:
-    latex: Y_P^\mathrm{BBN}
-  omegan2:
-    latex: \Omega_\mathrm{\\nu} h^2
-  omegan:
-    derived: 'lambda omegan2, H0: omegan2/((H0/100)**2)'
-    latex: \Omega_\mathrm{\\nu}
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # Nuisance parameters below (it overwrites the default settings)
@@ -538,18 +493,34 @@ params:
     latex: PM_\mathrm{Roman}^8
        
 theory:
-  camb:
-    path: ./external_modules/code/CAMB
-    stop_at_error: False
-    use_renames: True
+  emulrdrag:
+    path: ./cobaya/cobaya/theories/
+    provides: ['rdrag']
     extra_args:
-      halofit_version: takahashi
-      AccuracyBoost: 1.1
-      lens_potential_accuracy: 1.0
-      dark_energy_model: ppf
-      accurate_massive_neutrino_transfers: false
-      k_per_logint: 15
-      kmax: 10.0
+      file: ['external_modules/data/emultrf/BAO_SN_RES/emul_lcdm_rdrag_GP.joblib'] 
+      extra: ['external_modules/data/emultrf/BAO_SN_RES/extra_lcdm_rdrag.npy'] 
+      ord: [['omegabh2','omegach2']]
+  emulbaosn:
+    path: ./cobaya/cobaya/theories/
+    stop_at_error: True
+    provides: ['comoving_radial_distance', 'angular_diameter_distance', 'Hubble']
+    extra_args:
+      device: "cuda"
+      file:  [None, 'external_modules/data/emultrf/BAO_SN_RES/w0wa/emul_w0wa_H.pt']
+      extra: [None, 'external_modules/data/emultrf/BAO_SN_RES/w0wa/extra_w0wa_H.npy']    
+      ord: [None, ['omegam','H0','w','wa']]
+      extrapar: [{'MLA': 'INT', 'ZMIN' : 0.0001, 'ZMAX' : 3, 'NZ' : 600},
+                 {'MLA': 'ResMLP', 'offset' : 0.0, 'INTDIM' : 4, 'NLAYER' : 6,
+                  'TMAT': 'external_modules/data/emultrf/BAO_SN_RES/w0wa/PCA_w0wa_H.npy',
+                  'ZLIN': 'external_modules/data/emultrf/BAO_SN_RES/w0wa/z_lin_w0wa.npy'}]
+  emulmps:
+    path: ./cobaya/cobaya/theories/
+    stop_at_error: True
+    extra_args:
+      use_syren: False
+      model_file:    "external_modules/data/emultrf/emulmps/npce_emul/emulator_npce.keras"
+      metadata_file: "external_modules/data/emultrf/emulmps/npce_emul/metadata.joblib"
+      param_order: ["As_1e9", "ns", "H0", "omegab", "omegam", 'w', 'wa']
 #  fastpt:
 #    path: ./external_modules/code/FAST-PT
 #    extra_args:
@@ -565,7 +536,6 @@ sampler:
       H0: 67.32
       omegab: 0.04
       omegam: 0.3
-      mnu: 0.06
       w0pwa: -1.0
       w: -1.0
       roman_DZ_S1: 0.0
@@ -595,10 +565,10 @@ sampler:
       roman_B1_7: 2.52
       roman_B1_8: 2.44
       # TATT PARAMETERS
-      #roman_A2_1: 0.0
-      #roman_BTA_1: 0.0
-      roman_A2_1: 0.05
-      roman_BTA_1: 0.05
+      roman_A2_1: 0.0
+      roman_BTA_1: 0.0
+      #roman_A2_1: 0.05
+      #roman_BTA_1: 0.05
       roman_A2_2: -1.51541
-      #A2_1: 0.05, BTA_1: 0.05, chi2 ~ 9.6
-output: ./projects/roman_real/chains/EXAMPLE_EVALUATE2
+      #A2_1: 0.05, BTA_1: 0.05, chi2 =  9.65648
+output: ./projects/roman_real/chains/EXAMPLE_EMUL2_EVALUATE2

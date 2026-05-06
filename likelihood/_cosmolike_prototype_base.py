@@ -5,6 +5,7 @@ import numpy as np
 import scipy
 import sys
 import time
+import functools
 
 # Local
 from cobaya.likelihoods.base_classes import DataSetLikelihood
@@ -14,13 +15,48 @@ from getdist import IniFile
 import euclidemu2 as ee2
 import math
 
-import cosmolike_roman_real_interface as ci
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+
 from contextlib import contextmanager
 @contextmanager
 def timer(label):
   t0 = time.perf_counter()
   yield
   print(f"{label}: {time.perf_counter() - t0:.4f}s")
+
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+import cosmolike_roman_real_interface as ci
+
+COSMOLIKE_OMP_THREADS = int(os.environ.get("OMP_NUM_THREADS", os.cpu_count()))
+
+def with_omp_threads(fn):
+    """
+    WHY THIS EXISTS
+    ---------------
+    Cosmolike's hot loops are parallelized with OpenMP and rely on
+    omp_get_max_threads() returning the value set by OMP_NUM_THREADS
+    However, some Python libraries silently call omp_set_num_threads(1). 
+    This globally drops the OpenMP thread count, forcing cosmolike's 
+    parallel-for regions to run on a single core afterwards.
+   
+    The slowdown is invisible in standard profiling - perf shows the same
+    function distribution inside cosmolike, just running serialized. The
+    only diagnostics that surface it are omp_get_max_threads() at the
+    cosmolike entry point, or htop showing 100% (one core) instead of
+    800% (eight cores) during the C computation.
+    """
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        ci.set_omp_threads(COSMOLIKE_OMP_THREADS)
+        return fn(*args, **kwargs)
+    return wrapper
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 survey = "roman"
 
@@ -42,15 +78,15 @@ class _cosmolike_prototype_base(DataSetLikelihood):
 
     # ------------------------------------------------------------------------   
     tmp=int(1000 + 250*self.accuracyboost)
-    self.z_interp_1D = np.concatenate((np.linspace(0.0,3.0,max(100,int(0.80*tmp))),
-                                       np.linspace(3.0,50.1,max(100,int(0.40*tmp))),
+    self.z_interp_1D = np.concatenate((np.linspace(0.0,3.0,max(100,int(0.80*tmp)),endpoint=False),
+                                       np.linspace(3.0,50.1,max(100,int(0.40*tmp)),endpoint=False),
                                        np.linspace(1070,1100,max(50,int(0.10*tmp)))),axis=0)
     self.len_z_interp_1D = len(self.z_interp_1D)
 
     tmp=int(min(120 + 20*self.accuracyboost,250))
     # zmax of the hybrid emulator is 50 (why 50? Only relevant if CMB lensing included)
-    self.z_interp_2D = np.concatenate((np.linspace(0,3.0,max(50,int(0.75*tmp))), 
-                                       np.linspace(3.01,49.99,max(30,int(0.25*tmp)))),axis=0)
+    self.z_interp_2D = np.concatenate((np.linspace(0,3.0,max(50,int(0.75*tmp)),endpoint=False), 
+                                       np.linspace(3.0,49.99,max(30,int(0.25*tmp)))),axis=0)
     self.len_z_interp_2D = len(self.z_interp_2D)
     
     self.log10k_interp_2D = np.linspace(-4.99,2.0,int(1250+250*self.accuracyboost))
@@ -228,7 +264,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-
+  @with_omp_threads
   def set_cosmo_related(self):
     h = self.provider.get_param("H0")/100.0
     if not (self.use_emulator == 1):
@@ -324,7 +360,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-
+  @with_omp_threads
   def set_source_related(self, **params):
     ntomo = self.source_ntomo
     ci.set_nuisance_shear_calib(
@@ -363,7 +399,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-
+  @with_omp_threads
   def set_lens_related(self, **params):
     ntomo = self.lens_ntomo
     ci.set_point_mass(
@@ -404,21 +440,19 @@ class _cosmolike_prototype_base(DataSetLikelihood):
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-
   def compute_logp(self, datavector):
     return -0.5 * ci.compute_chi2(datavector)
 
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-
   def logp(self, **params):
     return self.compute_logp(self.get_datavector(**params))
 
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
   # ------------------------------------------------------------------------
-
+  @with_omp_threads
   def get_datavector(self, **params):        
     if self.use_emulator == 1:
       dv = self.internal_get_datavector_emulator(**params)
@@ -544,8 +578,9 @@ class _cosmolike_prototype_base(DataSetLikelihood):
 
   def internal_get_datavector(self, **params):
     self.set_cosmo_related()
+    
     if self.probe != "xi":
-        self.set_lens_related(**params)
+      self.set_lens_related(**params)
     self.set_source_related(**params)
     
     if self.create_baryon_pca:
@@ -555,7 +590,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
     elif self.use_baryon_pca: 
       Q = [params.get(p,0) for p in [survey+"_BARYON_Q"+str(i+1) for i in range(self.npcs)]]     
       datavector = ci.compute_data_vector_masked_with_baryon_pcs(Q=Q)
-    else:  
+    else: 
       datavector = ci.compute_data_vector_masked()
 
     if self.print_datavector:

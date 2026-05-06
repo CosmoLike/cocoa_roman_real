@@ -59,12 +59,14 @@ ifdef COSMOLIKE_DEBUG_MODE
 		COMMON_FLAGS += -fmax-errors=1 -fsignaling-nans
 	endif 
 else
-	COMMON_FLAGS += -O3 -march=native -fno-fast-math -fno-associative-math -frounding-math
+	COMMON_FLAGS += -g -O3 -march=native -fno-fast-math -fno-associative-math -frounding-math
+	COMMON_FLAGS += -DCOSMO3D_ASSUME_PIECEWISE_UNIFORM
 	ifeq ($(PYOS),Darwin)
 	  COMMON_FLAGS += -fopenmp -ftrapping-math
 	  #VEC_FLAGS += -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize
 	else
 	  COMMON_FLAGS += -fopenmp -ftrapping-math -fsignaling-nans
+	  #VEC_FLAGS += -fopt-info-vec-all
 	endif
 endif
 
