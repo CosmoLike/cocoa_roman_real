@@ -24,7 +24,7 @@ import numpy as np
 import logging
 import pyspk as spk
 import BCemu
-import FalmingoBaryonResponseEmulator as fre
+import FlamingoBaryonResponseEmulator as fre
 from scipy.interpolate import interp1d
 from astropy.cosmology import FlatLambdaCDM
 from cobaya.theory import Theory
