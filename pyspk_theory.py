@@ -17,13 +17,14 @@ Physics Background:
     - Flamingo: Schaller+ 2025 (arxiv:2410.17109)
 
 Author: Nihar Dalal, Kunhao Zhong, CoCoA Developers
-Date: April 2026
+Date: May 2026
 """
 
 import numpy as np
 import logging
 import pyspk as spk
 import BCemu
+import FalmingoBaryonResponseEmulator as fre
 from scipy.interpolate import interp1d
 from astropy.cosmology import FlatLambdaCDM
 from cobaya.theory import Theory
@@ -84,6 +85,11 @@ class BaryonSuppression(Theory):
         self.delta_min, self.delta_max = 3.0, 11.0
         self.eta_min, self.eta_max = 0.05, 4.0
         self.deta_min, self.deta_max = 0.05, 4.0
+
+        # Parameter validation bounds for Flamingo (based on Schaller+ 2025 and reasonable extensions)
+        self.fgas_sigma_min, self.fgas_sigma_max = -10.0, 4.0
+        self.mstar_sigma_min, self.mstar_sigma_max = -3.0, 2.0
+        self.jet_frac_min, self.jet_frac_max = 0.0, 1.0
 
         self.log.debug(
             "BaryonSuppression: Initialized with baryon_model=%d, "
@@ -193,13 +199,10 @@ class BaryonSuppression(Theory):
         elif self.baryon_model == 2:
             suppression_dict = self._calculate_bcemu(params_values_dict)
         elif self.baryon_model == 3:
-            self.log.warning(
-                "baryon_model=3 (PCA) not yet implemented; returning unity suppression"
-            )
-            suppression_dict = self._unity_suppression()
+            suppression_dict = self._calculate_flamingo(params_values_dict)
         else:
             self.log.error(
-                "baryon_model=%d is invalid; must be 1 (pyspk), 2 (bcemu), or 3 (pca); "
+                "baryon_model=%d is invalid; must be 1 (pyspk), 2 (bcemu), or 3 (flamingo); "
                 "returning unity suppression",
                 self.baryon_model,
             )
@@ -236,37 +239,27 @@ class BaryonSuppression(Theory):
             )
 
             # 2. Validate parameters are within acceptable ranges (3-sigma bounds)
-            # This is a safety layer; parameter priors should enforce this, but
-            # we catch edge cases and gracefully reject them
+            # Reject invalid parameters by raising exception; MCMC will treat as rejected sample
             if not (self.alpha_min < alpha < self.alpha_max):
-                self.log.warning(
-                    "SPk parameter alpha_spk=%.4f outside valid range "
-                    "[%.4f, %.4f]; returning unity suppression",
-                    alpha,
-                    self.alpha_min,
-                    self.alpha_max,
+                raise LoggedError(
+                    self.log,
+                    f"SPk parameter alpha_spk={alpha:.4f} outside valid range "
+                    f"[{self.alpha_min:.4f}, {self.alpha_max:.4f}]",
                 )
-                return self._unity_suppression()
 
             if not (self.beta_min < beta < self.beta_max):
-                self.log.warning(
-                    "SPk parameter beta_spk=%.4f outside valid range "
-                    "[%.4f, %.4f]; returning unity suppression",
-                    beta,
-                    self.beta_min,
-                    self.beta_max,
+                raise LoggedError(
+                    self.log,
+                    f"SPk parameter beta_spk={beta:.4f} outside valid range "
+                    f"[{self.beta_min:.4f}, {self.beta_max:.4f}]",
                 )
-                return self._unity_suppression()
 
             if not (self.gamma_min < gamma < self.gamma_max):
-                self.log.warning(
-                    "SPk parameter gamma_spk=%.4f outside valid range "
-                    "[%.4f, %.4f]; returning unity suppression",
-                    gamma,
-                    self.gamma_min,
-                    self.gamma_max,
+                raise LoggedError(
+                    self.log,
+                    f"SPk parameter gamma_spk={gamma:.4f} outside valid range "
+                    f"[{self.gamma_min:.4f}, {self.gamma_max:.4f}]",
                 )
-                return self._unity_suppression()
 
             # 3. Fetch cosmological parameters from provider (e.g., CAMB/CLASS)
             H0 = self.provider.get_param("H0")
@@ -422,8 +415,11 @@ class BaryonSuppression(Theory):
             )
             return suppression_dict
 
+        except LoggedError:
+            # Parameter validation rejection—let it propagate to MCMC
+            raise
         except Exception as e:
-            # Catch-all: any uncaught exception → graceful degradation
+            # Catch-all: any other uncaught exception → graceful degradation
             self.log.error(
                 "Uncaught exception in SPk calculation: %s; "
                 "returning unity suppression",
@@ -441,69 +437,48 @@ class BaryonSuppression(Theory):
             eta_bcemu = params_values_dict.get("eta_bcemu", 2.0)
             deta_bcemu = params_values_dict.get("deta_bcemu", 2.0)
 
-            if not (self.log10Mc_bcemu_min < log10Mc_bcemu < self.log10Mc_max):
-                self.log.warning(
-                    "BCEmu parameter log10Mc_bcemu=%.4f outside valid range "
-                    "[%.4f, %.4f]; returning unity suppression",
-                    log10Mc_bcemu,
-                    self.log10Mc_bcemu_min,
-                    self.log10Mc_bcemu_max,
+            if not (self.log10Mc_min < log10Mc_bcemu < self.log10Mc_max):
+                raise LoggedError(
+                    self.log,
+                    f"BCEmu parameter log10Mc_bcemu={log10Mc_bcemu:.4f} outside valid range "
+                    f"[{self.log10Mc_min:.4f}, {self.log10Mc_max:.4f}]",
                 )
-                return self._unity_suppression()
             if not (self.mu_min < mu_bcemu < self.mu_max):
-                self.log.warning(
-                    "BCEmu parameter mu_bcemu=%.4f outside valid range "
-                    "[%.4f, %.4f]; returning unity suppression",
-                    mu_bcemu,
-                    self.mu_min,
-                    self.mu_max,
+                raise LoggedError(
+                    self.log,
+                    f"BCEmu parameter mu_bcemu={mu_bcemu:.4f} outside valid range "
+                    f"[{self.mu_min:.4f}, {self.mu_max:.4f}]",
                 )
-                return self._unity_suppression()
             if not (self.thej_min < thej_bcemu < self.thej_max):
-                self.log.warning(
-                    "BCEmu parameter thej_bcemu=%.4f outside valid range "
-                    "[%.4f, %.4f]; returning unity suppression",
-                    thej_bcemu,
-                    self.thej_min,
-                    self.thej_max,
+                raise LoggedError(
+                    self.log,
+                    f"BCEmu parameter thej_bcemu={thej_bcemu:.4f} outside valid range "
+                    f"[{self.thej_min:.4f}, {self.thej_max:.4f}]",
                 )
-                return self._unity_suppression()
             if not (self.gamma_min < gamma_bcemu < self.gamma_max):
-                self.log.warning(
-                    "BCEmu parameter gamma_bcemu=%.4f outside valid range "
-                    "[%.4f, %.4f]; returning unity suppression",
-                    gamma_bcemu,
-                    self.gamma_min,
-                    self.gamma_max,
+                raise LoggedError(
+                    self.log,
+                    f"BCEmu parameter gamma_bcemu={gamma_bcemu:.4f} outside valid range "
+                    f"[{self.gamma_min:.4f}, {self.gamma_max:.4f}]",
                 )
-                return self._unity_suppression()
             if not (self.delta_min < delta_bcemu < self.delta_max):
-                self.log.warning(
-                    "BCEmu parameter delta_bcemu=%.4f outside valid range "
-                    "[%.4f, %.4f]; returning unity suppression",
-                    delta_bcemu,
-                    self.delta_min,
-                    self.delta_max,
+                raise LoggedError(
+                    self.log,
+                    f"BCEmu parameter delta_bcemu={delta_bcemu:.4f} outside valid range "
+                    f"[{self.delta_min:.4f}, {self.delta_max:.4f}]",
                 )
-                return self._unity_suppression()
             if not (self.eta_min < eta_bcemu < self.eta_max):
-                self.log.warning(
-                    "BCEmu parameter eta_bcemu=%.4f outside valid range "
-                    "[%.4f, %.4f]; returning unity suppression",
-                    eta_bcemu,
-                    self.eta_min,
-                    self.eta_max,
+                raise LoggedError(
+                    self.log,
+                    f"BCEmu parameter eta_bcemu={eta_bcemu:.4f} outside valid range "
+                    f"[{self.eta_min:.4f}, {self.eta_max:.4f}]",
                 )
-                return self._unity_suppression()
             if not (self.deta_min < deta_bcemu < self.deta_max):
-                self.log.warning(
-                    "BCEmu parameter deta_bcemu=%.4f outside valid range "
-                    "[%.4f, %.4f]; returning unity suppression",
-                    deta_bcemu,
-                    self.deta_min,
-                    self.deta_max,
+                raise LoggedError(
+                    self.log,
+                    f"BCEmu parameter deta_bcemu={deta_bcemu:.4f} outside valid range "
+                    f"[{self.deta_min:.4f}, {self.deta_max:.4f}]",
                 )
-                return self._unity_suppression()
 
             bcmdict = {
                 "log10Mc": log10Mc_bcemu,
@@ -565,10 +540,107 @@ class BaryonSuppression(Theory):
                     suppression_dict[z_val] = np.ones_like(self.requested_k)
                     continue
 
+        except LoggedError:
+            # Parameter validation rejection—let it propagate to MCMC
+            raise
         except Exception as e:
-            # Catch-all: any uncaught exception → graceful degradation
+            # Catch-all: any other uncaught exception → graceful degradation
             self.log.error(
                 "Uncaught exception in BCEmu calculation: %s; "
+                "returning unity suppression",
+                str(e),
+            )
+            return self._unity_suppression()
+
+    def _calculate_flamingo(self, params_values_dict):
+        try:
+            fgas_sigma_flamingo = params_values_dict.get("fgas_sigma_flamingo", 0)
+            mstar_sigma_flamingo = params_values_dict.get("mstar_sigma_flamingo", 0)
+            jet_frac_flamingo = params_values_dict.get("jet_frac_flamingo", 0)
+
+            self.log.debug(
+                "Flamingo baryon suppression: fgas_sigma=%.4f, mstar_sigma=%.4f, jet_frac=%.4f",
+                fgas_sigma_flamingo,
+                mstar_sigma_flamingo,
+                jet_frac_flamingo,
+            )
+
+            if not (self.fgas_sigma_min < fgas_sigma_flamingo < self.fgas_sigma_max):
+                raise LoggedError(
+                    self.log,
+                    f"Flamingo parameter fgas_sigma_flamingo={fgas_sigma_flamingo:.4f} outside valid range "
+                    f"[{self.fgas_sigma_min:.4f}, {self.fgas_sigma_max:.4f}]",
+                )
+            if not (self.mstar_sigma_min < mstar_sigma_flamingo < self.mstar_sigma_max):
+                raise LoggedError(
+                    self.log,
+                    f"Flamingo parameter mstar_sigma_flamingo={mstar_sigma_flamingo:.4f} outside valid range "
+                    f"[{self.mstar_sigma_min:.4f}, {self.mstar_sigma_max:.4f}]",
+                )
+            if not (self.jet_frac_min < jet_frac_flamingo < self.jet_frac_max):
+                raise LoggedError(
+                    self.log,
+                    f"Flamingo parameter jet_frac_flamingo={jet_frac_flamingo:.4f} outside valid range "
+                    f"[{self.jet_frac_min:.4f}, {self.jet_frac_max:.4f}]",
+                )
+
+            myemu = fre.FalmingoBaryonResponseEmulator()
+            logkmin_flamingo = -1.5
+            logkmax_flamingo = 1.5
+            suppression_dict = {}
+            for i_z, z_val in enumerate(self.requested_z):
+                # Check if redshift is within Flamingo calibration range
+                # (Flamingo is calibrated for z=0-3; outside this, we return unity)
+                if z_val < 0.0 or z_val > 3.0:
+                    self.log.debug(
+                        "Flamingo z=%.3f outside calibration range [0.0, 3.0]; "
+                        "using unity suppression for this redshift",
+                        z_val,
+                    )
+                    suppression_dict[z_val] = np.ones_like(self.requested_k)
+                    continue
+
+                try:
+                    k_flamingo = 10 ** np.linspace(
+                        logkmin_flamingo, logkmax_flamingo, 100
+                    )  # h/Mpc
+                    sup_flamingo = myemu.predict(
+                        k_flamingo,
+                        z_val,
+                        fgas_sigma_flamingo,
+                        mstar_sigma_flamingo,
+                        jet_frac_flamingo,
+                    )
+
+                    # Interpolate Flamingo suppression onto requested k-grid
+                    interp_flamingo = interp1d(
+                        np.log10(k_flamingo),
+                        np.log(sup_flamingo),
+                        kind="linear",
+                        fill_value="extrapolate",
+                        bounds_error=False,
+                        assume_sorted=True,
+                    )
+                    sup_interp = np.exp(interp_flamingo(np.log10(self.requested_k)))
+
+                    suppression_dict[z_val] = sup_interp
+
+                except Exception as e:
+                    self.log.error(
+                        "Flamingo model failed at z=%.3f: %s; "
+                        "using unity suppression for this redshift",
+                        z_val,
+                        str(e),
+                    )
+                    suppression_dict[z_val] = np.ones_like(self.requested_k)
+                    continue
+        except LoggedError:
+            # Parameter validation rejection—let it propagate to MCMC
+            raise
+        except Exception as e:
+            # Catch-all: any other uncaught exception → graceful degradation
+            self.log.error(
+                "Uncaught exception in Flamingo calculation: %s; "
                 "returning unity suppression",
                 str(e),
             )
