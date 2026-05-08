@@ -437,6 +437,17 @@ class BaryonSuppression(Theory):
             eta_bcemu = params_values_dict.get("eta_bcemu", 2.0)
             deta_bcemu = params_values_dict.get("deta_bcemu", 2.0)
 
+            self.log.debug(
+                "BCEmu baryon suppression: log10Mc=%.4f, mu=%.4f, thej=%.4f, gamma=%.4f, delta=%.4f, eta=%.4f, deta=%.4f",
+                log10Mc_bcemu,
+                mu_bcemu,
+                thej_bcemu,
+                gamma_bcemu,
+                delta_bcemu,
+                eta_bcemu,
+                deta_bcemu,
+            )
+
             if not (self.log10Mc_min < log10Mc_bcemu < self.log10Mc_max):
                 raise LoggedError(
                     self.log,
