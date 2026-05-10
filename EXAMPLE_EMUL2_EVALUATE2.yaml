@@ -18,7 +18,7 @@ likelihood:
     kmax_boltzmann: 7.5
     # 1 EE2, 2 Halofit
     non_linear_emul: 2
-    IA_model: 1 # NLA (0) or TATT (1)
+    IA_model: 0 # NLA (0) or TATT (1)
     IA_code: 0  # CFASTPT (0) or FASTPT (1) (only works if not NLA)
     IA_redshift_evolution: 3
     ggl_exclude: [[6,0],[7,0],[7,1]]
@@ -517,9 +517,11 @@ theory:
     path: ./cobaya/cobaya/theories/
     stop_at_error: True
     extra_args:
-      use_syren: False
       model_file:    "external_modules/data/emultrf/emulmps/npce_emul/emulator_npce.keras"
       metadata_file: "external_modules/data/emultrf/emulmps/npce_emul/metadata.joblib"
+      nl_model_file:    "external_modules/data/emultrf/emulmps/w0wa_halofit/emulator_halofit.keras"
+      nl_metadata_file: "external_modules/data/emultrf/emulmps/w0wa_halofit/metadata.joblib"
+      use_syren: False
       param_order: ["As_1e9", "ns", "H0", "omegab", "omegam", 'w', 'wa']
 #  fastpt:
 #    path: ./external_modules/code/FAST-PT

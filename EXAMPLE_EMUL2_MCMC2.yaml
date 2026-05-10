@@ -370,9 +370,11 @@ theory:
     path: ./cobaya/cobaya/theories/
     stop_at_error: True
     extra_args:
-      use_syren: False
       model_file:    "external_modules/data/emultrf/emulmps/npce_emul/emulator_npce.keras"
       metadata_file: "external_modules/data/emultrf/emulmps/npce_emul/metadata.joblib"
+      nl_model_file:    "external_modules/data/emultrf/emulmps/w0wa_halofit/emulator_halofit.keras"
+      nl_metadata_file: "external_modules/data/emultrf/emulmps/w0wa_halofit/metadata.joblib"
+      use_syren: False
       param_order: ["As_1e9", "ns", "H0", "omegab", "omegam", 'w', 'wa']
 sampler:
   mcmc:
@@ -416,19 +418,19 @@ sampler:
     oversample_power: 0.2
     oversample_thin: True
     blocking:
-    - [5,
+    - [8,
         [
           As_1e9, ns, H0, omegab, omegam, w, w0pwa
         ]
       ]
-    - [10,
+    - [16,
         [
           roman_DZ_S1, roman_DZ_S2, roman_DZ_S3, roman_DZ_S4, 
           roman_DZ_S5, roman_DZ_S6, roman_DZ_S7, roman_DZ_S8,
           roman_A1_1, roman_A1_2
         ]
       ]
-    - [50,
+    - [60,
         [
           roman_M1, roman_M2, roman_M3, roman_M4, 
           roman_M5, roman_M6, roman_M7, roman_M8,

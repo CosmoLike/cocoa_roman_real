@@ -15,10 +15,6 @@ from getdist import IniFile
 import euclidemu2 as ee2
 import math
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-
 from contextlib import contextmanager
 @contextmanager
 def timer(label):
@@ -26,12 +22,9 @@ def timer(label):
   yield
   print(f"{label}: {time.perf_counter() - t0:.4f}s")
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
 import cosmolike_roman_real_interface as ci
 
-COSMOLIKE_OMP_THREADS = int(os.environ.get("OMP_NUM_THREADS", os.cpu_count()))
+COSMOLIKE_OMP_THREADS = int(os.environ.get("OMP_NUM_THREADS", 1))
 
 def with_omp_threads(fn):
     """
@@ -42,21 +35,12 @@ def with_omp_threads(fn):
     However, some Python libraries silently call omp_set_num_threads(1). 
     This globally drops the OpenMP thread count, forcing cosmolike's 
     parallel-for regions to run on a single core afterwards.
-   
-    The slowdown is invisible in standard profiling - perf shows the same
-    function distribution inside cosmolike, just running serialized. The
-    only diagnostics that surface it are omp_get_max_threads() at the
-    cosmolike entry point, or htop showing 100% (one core) instead of
-    800% (eight cores) during the C computation.
     """
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
         ci.set_omp_threads(COSMOLIKE_OMP_THREADS)
         return fn(*args, **kwargs)
     return wrapper
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
 
 survey = "roman"
 
