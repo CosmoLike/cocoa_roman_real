@@ -423,7 +423,7 @@ The repository `emulators_code` provides the script `dataset_generator_lensing.p
            --root projects/roman_real/  \
            --fileroot emulators/nla_cosmic_shear/ \
            --nparams 10000 \
-           --yaml 'w0wa_takahashi_cs_CNN.yaml' \
+           --yaml 'w0wa_takahashi_cs_cnn.yaml' \
            --datavsfile 'w0wa_takahashi_dvs_train' \
            --paramfile 'w0wa_takahashi_params_train' \
            --failfile  'w0wa_takahashi_params_failed_train' \
