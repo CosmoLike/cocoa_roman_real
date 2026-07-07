@@ -3,6 +3,8 @@ debug: False
 stop_at_error: False
 
 likelihood:
+#  sn.roman_c:
+#    path: ./external_modules/data/sn_data
   roman_real.cosmic_shear:
     use_emulator: 2
     path: ./external_modules/data/roman_real
