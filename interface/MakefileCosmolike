@@ -1,6 +1,15 @@
 CC = $(C_COMPILER)
 CXX = $(CXX_COMPILER)
 
+# JVR MOD: Cosmolike in Cocoa v4.11.2 uses SIMDE, but prior versions do not
+# This is a bit of a hack but I think it should work, since the prior versions
+# do not define the SIMDE_NAME env variable
+ifdef SIMDE_NAME
+	COMMON_FLAGS += -I ${ROOTDIR}/external_modules/code/simde
+else
+	COMMON_FLAGS += -DCOSMO2D_NOT_USE_SIMD
+endif
+
 # LINUX OR MacOS?
 PYOS := $(shell uname -s)
 

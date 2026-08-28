@@ -238,7 +238,7 @@ def test_requirements_declaration():
         theory = BaryonSuppression()
         reqs = theory.get_requirements()
 
-        if "H0" in reqs and "Omega_m" in reqs:
+        if "H0" in reqs and "omegam" in reqs:
             print("✓ Theory block declares H0 and Omega_m requirements")
             return True
         else:

@@ -1,7 +1,7 @@
 timing: False
 debug: False
 stop_at_error: False
-output: ./projects/roman_real/chains/EXAMPLE_SPK
+output: ./projects/roman_real/chains/EXAMPLE_DMO
 
 likelihood:
   roman_real.cosmic_shear:
@@ -12,13 +12,13 @@ likelihood:
     integration_accuracy: 0
     kmax_boltzmann: 7.5
     non_linear_emul: 2
-    baryon_suppression: 1 # This turns on baryon suppression
+    baryon_suppression: 0 # This turns off baryon suppression
     IA_model: 0
     IA_redshift_evolution: 3
     ggl_exclude: [[6,0],[7,0],[7,1]]
     create_baryon_pca: false
     print_datavector: true
-    print_datavector_file: "./projects/roman_real/SPK.modelvector"
+    print_datavector_file: "./projects/roman_real/DMO.modelvector"
     
 params:
   As_1e9:

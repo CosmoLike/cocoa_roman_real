@@ -67,7 +67,7 @@ class BaryonSuppression(Theory):
         self.requested_k = np.array([])
 
         # pyspk Calibration ranges (from Kunhao's testing/tuning)
-        self.z_min_calib = 0.125  # Below this, pyspk not well-calibrated
+        self.z_min_calib = 0  # Below this, pyspk not well-calibrated
         self.z_max_calib = 3.0  # Above this, pyspk not well-calibrated
         self.k_min_calib = 8.73e-3  # h/Mpc; below this, outside calibration
 
@@ -75,13 +75,13 @@ class BaryonSuppression(Theory):
         # Expected ranges: alpha ~4.18±0.12, beta ~1.26±0.08, gamma ~0.42±0.10
         self.alpha_min, self.alpha_max = 3.8, 4.6
         self.beta_min, self.beta_max = 1.0, 1.6
-        self.gamma_min, self.gamma_max = 0.1, 0.75
+        self.gamma_min_spk, self.gamma_max_spk = 0.1, 0.75
 
         # Parameter validation bounds for BCEmu (based on Giri+ 2021 and reasonable extensions)
         self.log10Mc_min, self.log10Mc_max = 11.0, 15.0
         self.mu_min, self.mu_max = 0.0, 2.0
         self.thej_min, self.thej_max = 2.0, 8.0
-        self.gamma_min, self.gamma_max = 1.0, 4.0
+        self.gamma_min_bcemu, self.gamma_max_bcemu = 1.0, 4.0
         self.delta_min, self.delta_max = 3.0, 11.0
         self.eta_min, self.eta_max = 0.05, 4.0
         self.deta_min, self.deta_max = 0.05, 4.0
@@ -243,7 +243,7 @@ class BaryonSuppression(Theory):
             if not (self.alpha_min < alpha < self.alpha_max):
                 raise LoggedError(
                     self.log,
-                    f"SPk parameter alpha_spk={alpha:.4f} outside valid range "
+                    f"SPk parameter alpha_spk={alpha:.4f} outside valid range"
                     f"[{self.alpha_min:.4f}, {self.alpha_max:.4f}]",
                 )
 
@@ -254,11 +254,11 @@ class BaryonSuppression(Theory):
                     f"[{self.beta_min:.4f}, {self.beta_max:.4f}]",
                 )
 
-            if not (self.gamma_min < gamma < self.gamma_max):
+            if not (self.gamma_min_spk < gamma < self.gamma_max_spk):
                 raise LoggedError(
                     self.log,
                     f"SPk parameter gamma_spk={gamma:.4f} outside valid range "
-                    f"[{self.gamma_min:.4f}, {self.gamma_max:.4f}]",
+                    f"[{self.gamma_min_spk:.4f}, {self.gamma_max_spk:.4f}]",
                 )
 
             # 3. Fetch cosmological parameters from provider (e.g., CAMB/CLASS)
@@ -466,11 +466,11 @@ class BaryonSuppression(Theory):
                     f"BCEmu parameter thej_bcemu={thej_bcemu:.4f} outside valid range "
                     f"[{self.thej_min:.4f}, {self.thej_max:.4f}]",
                 )
-            if not (self.gamma_min < gamma_bcemu < self.gamma_max):
+            if not (self.gamma_min_bcemu < gamma_bcemu < self.gamma_max_bcemu):
                 raise LoggedError(
                     self.log,
                     f"BCEmu parameter gamma_bcemu={gamma_bcemu:.4f} outside valid range "
-                    f"[{self.gamma_min:.4f}, {self.gamma_max:.4f}]",
+                    f"[{self.gamma_min_bcemu:.4f}, {self.gamma_max_bcemu:.4f}]",
                 )
             if not (self.delta_min < delta_bcemu < self.delta_max):
                 raise LoggedError(

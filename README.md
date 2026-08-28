@@ -1,11 +1,18 @@
-## This is a work-in-progress repository to add various baryon models to cocoa. 
+# Roman Real - Baryon Models
+
+This repository implements baryonic feedback suppresion models as a `Cobaya` theory block that can be used alongside Cosmolike. The implemented models are
+- SP(k), Salcido et al 2023 https://arxiv.org/abs/2305.09710
+- BCEmu, Giri & Schneider 2021 https://arxiv.org/abs/2108.08863
+- FlamingoBaryonResponseEmulator, Schaller et al 2024 https://arxiv.org/abs/2410.17109
+
 Installation instructions. First navigate to the Cocoa projects folder and clone the repository into roman_real
 ```
  git clone https://github.com/nihardalal/cocoa_roman_real_baryons.git roman_real
 ```
 You'll also need to install [SP(k)](https://github.com/jemme07/pyspk) and [BCEmu](https://github.com/sambit-giri/BCemu) in your .local environment (after `source start_cocoa.sh`).
 
-I've included a few example evaluate YAML files. Please note that I'm not able to get this running with euclidemulator at the moment, but the code does seem to work with halofit. More testing to be done!
+As of August 28th 2026, we have validated this code with the SP(k) suppression model. The yaml files `EXAMPLE_SPK.yaml` and `EXAMPLE_DMO.yaml` compute the model vector for the same cosmology but differing in baryon suppression. The script `plot_dvs.ipynb` plots the resulting data vectors from each example, showing the effect of baryonic feedback suppresion at data vector level.
+
 ## Running Cosmolike projects (Basic instructions) <a name="running_cosmolike_projects"></a> 
 
 From `Cocoa/Readme` instructions:

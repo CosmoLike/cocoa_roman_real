@@ -191,9 +191,6 @@ class _cosmolike_prototype_base(DataSetLikelihood):
                 "omegab": None,
                 "mnu": None,
                 "w": None,
-                "alpha_spk": None,  # starting baryon code
-                "beta_spk": None,
-                "gamma_spk": None,  # ending baryon code
                 "Pk_interpolator": {
                     "z": self.z_interp_2D,
                     "k_max": self.kmax_boltzmann * self.accuracyboost,
