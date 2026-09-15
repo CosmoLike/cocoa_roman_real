@@ -11,7 +11,7 @@ From `Cocoa/Readme` instructions:
 >     # ------------------------------------------------------------------------------
 >     # The keys below control which cosmolike projects will be installed and compiled
 >     # ------------------------------------------------------------------------------
->     #export IGNORE_COSMOLIKE_LSSTY1_CODE=1
+>     #export IGNORE_COSMOLIKE_LSST_Y1_CODE=1
 >     #export IGNORE_COSMOLIKE_DES_Y3_CODE=1
 >     #export IGNORE_COSMOLIKE_ROMAN_FOURIER_CODE=1
 >     export IGNORE_COSMOLIKE_ROMAN_REAL_CODE=1
@@ -24,12 +24,12 @@ From `Cocoa/Readme` instructions:
 >     (...)
 >     export ROMAN_REAL_URL="https://github.com/CosmoLike/cocoa_roman_real.git"
 >     export ROMAN_REAL_NAME="roman_real"
->     #BRANCH: if unset, load the latest commit on the specified branch
->     #export ROMAN_REAL_BRANCH="main"
->     #COMMIT: if unset, load the specified commit
->     export ROMAN_REAL_COMMIT="23a774c32480b7b4bd5da5f637270310bc88f86c"
->     #BRANCH: if unset, load the specified TAG
->     #export ROMAN_REAL_TAG="v4.0-beta17"
+>     #Pin the project version with at most one of the keys below (COMMIT, BRANCH, or TAG).
+>     #If more than one is set, COMMIT wins over BRANCH, and BRANCH wins over TAG.
+>     #If none is set, Cocoa loads the latest commit on the repository default branch.
+>     #export ROMAN_REAL_GIT_BRANCH="main"
+>     #export ROMAN_REAL_GIT_COMMIT="abc"
+>     export ROMAN_REAL_GIT_TAG="v4.10.7"
 
 
 > [!NOTE]
@@ -71,7 +71,7 @@ From `Cocoa/Readme` instructions:
 To run the example
 
  **Step :one:**: activate the cocoa Conda environment,  and the private Python environment 
-    
+
       conda activate cocoa
 
 and
@@ -79,34 +79,54 @@ and
       source start_cocoa.sh
  
  **Step :two:**: Select the number of OpenMP cores (below, we set it to 8).
+
+  - Linux
     
-    export OMP_PROC_BIND=close; export OMP_NUM_THREADS=8; export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE
-      
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=close; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
+  - macOS (arm)
+    
+        export OMP_NUM_THREADS=8; export OMP_PROC_BIND=disabled; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE;
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
+
  **Step :three:**: The folder `projects/roman_real` contains examples. So, run the `cobaya-run` on the first example following the commands below.
+
+> [!Warning] 
+> (Linux only) In some HPC nodes, `numa` can cause you problems. If that is the case,
+> replace `numa` with `slot`
 
 - **One model evaluation**:
 
   - Linux
 
-        mpirun -n 1 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self --report-bindings \
-           --bind-to core:overload-allowed --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
-           cobaya-run ./projects/roman_real/EXAMPLE_EVALUATE1.yaml -f
+        "${CONDA_PREFIX}"/bin/mpirun -n 1 --oversubscribe \
+          --mca pml ob1 --mca btl vader,tcp,self \
+          --bind-to core:overload-allowed --report-bindings \
+          --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+          cobaya-run ./projects/roman_real/EXAMPLE_EVALUATE1.yaml -f
 
-  -  macOS (arm)
+  - macOS (arm)
 
-         mpirun -n 1 --oversubscribe cobaya-run ./projects/roman_real/EXAMPLE_EVALUATE1.yaml -f
+         mpirun -n 1 --oversubscribe \
+          cobaya-run ./projects/roman_real/EXAMPLE_EVALUATE1.yaml -f
 
 - **MCMC (Metropolis-Hastings Algorithm)**:
 
   - Linux
 
-        mpirun -n 4 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self --report-bindings \
-           --bind-to core:overload-allowed --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
-           cobaya-run ./projects/roman_real/EXAMPLE_MCMC1.yaml -f
+        "${CONDA_PREFIX}"/bin/mpirun -n 4 --oversubscribe \
+          --mca pml ob1 --mca btl vader,tcp,self \
+          --bind-to core:overload-allowed --report-bindings \
+          --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+          cobaya-run ./projects/roman_real/EXAMPLE_MCMC1.yaml -f
 
-   -  macOS (arm)
+  - macOS (arm)
      
-          mpirun -n 4 --oversubscribe cobaya-run ./projects/roman_real/EXAMPLE_MCMC1.yaml -f
+          mpirun -n 4 --oversubscribe \
+            cobaya-run ./projects/roman_real/EXAMPLE_MCMC1.yaml -f
 
 # Running ML emulators <a name="roman_examples_emul"></a>
 
@@ -143,34 +163,40 @@ Now, users must follow all the steps below.
     source start_cocoa.sh
 
  **Step :two:**: Ensure OpenMP is **OFF**.
-    
+
     export OMP_NUM_THREADS=1
-    
+
  **Step :three:** Run `cobaya-run` on the first emulator example following the commands below.
 
  - **One model evaluation**:
 
   - Linux
     
-        mpirun -n 1 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self \
-            --bind-to core:overload-allowed --rank-by slot --map-by slot:pe=${OMP_NUM_THREADS} \
-            cobaya-run ./projects/roman_real/EXAMPLE_EMUL_EVALUATE1.yaml -f
+        "${CONDA_PREFIX}"/bin/mpirun -n 1 --oversubscribe \
+          --mca pml ob1 --mca btl vader,tcp,self \
+          --bind-to core:overload-allowed --report-bindings \
+          --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+          cobaya-run ./projects/roman_real/EXAMPLE_EMUL_EVALUATE1.yaml -f
 
   - macOS (arm)
  
-         mpirun -n 1 --oversubscribe  cobaya-run ./projects/roman_real/EXAMPLE_EMUL_EVALUATE1.yaml -f
+         mpirun -n 1 --oversubscribe \
+          cobaya-run ./projects/roman_real/EXAMPLE_EMUL_EVALUATE1.yaml -f
 
 - **MCMC (Metropolis-Hastings Algorithm)**:
 
   - Linux
     
-        mpirun -n 4 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self \
-            --bind-to core:overload-allowed --rank-by slot --map-by slot:pe=${OMP_NUM_THREADS} \
+        "${CONDA_PREFIX}"/bin/mpirun -n 4 --oversubscribe \
+          --mca pml ob1 --mca btl vader,tcp,self \
+          --bind-to core:overload-allowed --report-bindings \
+          --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
             cobaya-run ./projects/roman_real/EXAMPLE_EMUL_MCMC1.yaml -r
 
   - macOS (arm)
 
-        mpirun -n 4 --oversubscribe cobaya-run ./projects/roman_real/EXAMPLE_EMUL_MCMC1.yaml -r
+        mpirun -n 4 --oversubscribe \
+          cobaya-run ./projects/roman_real/EXAMPLE_EMUL_MCMC1.yaml -r
 
 - **Halofit Comparison**
 
@@ -180,59 +206,119 @@ Now, users must follow all the steps below.
   <img width="750" height="750" alt="project_roman_real_plot_halofit_comparison_1" src="https://github.com/user-attachments/assets/e9779555-e27c-4d19-a1f0-0533267762ab" />
   </p>
 
+> [!NOTE]
+> **Running on more than one node.** The flag `--mca btl vader,tcp,self` works unchanged across
+> nodes: Open MPI picks the transport per pair of ranks, using shared memory (`vader`) within a
+> node and TCP between nodes. Three things deserve attention on multi-node runs:
+>
+> 1. **Network interface.** The TCP layer must not select an interface that is not routable
+>    between compute nodes. The flag `--mca btl_tcp_if_exclude lo,docker0,virbr0,ib0` excludes
+>    the common offenders. TCP bandwidth is not a limitation for our workloads, which exchange
+>    small, infrequent MPI messages.
+>
+> 2. **Environment.** Ranks on remote nodes must see Cocoa's environment (`ROOTDIR`, `PATH`,
+>    `LD_LIBRARY_PATH`, `PYTHONPATH`, `CONDA_PREFIX`, the OpenMP/BLAS thread settings, and
+>    `CLIK_PATH`/`CLIK_DATA`/`CLIK_PLUGIN`). Slurm forwards the submitting environment
+>    automatically; the explicit `-x` flags in our sbatch templates repeat this so the
+>    scripts also work under ssh-based launchers. No other Cocoa installation flags are read at runtime.
+>
+> 3. **Slurm geometry.** Keep `ntasks-per-node` × `cpus-per-task` no larger than the cores per
+>    node, and use `--map-by numa:pe=${OMP_NUM_THREADS}` so each rank reserves the cores its
+>    OpenMP threads will use.
+
+> [!NOTE]
+> **Note on core oversubscription**: an MPI process that is waiting still burns 100% of its
+> core, checking for messages in a loop. With more processes than cores, this stalls the
+> processes doing real work. Open MPI usually detects this and makes waiting processes give
+> up the CPU, but its detection can be fooled. Adding `--mca mpi_yield_when_idle 1` forces
+> that behavior; it is harmless otherwise.
+
 - **PolyChord**:
 
   - Linux
     
-        mpirun -n 90 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self \
-            --bind-to core:overload-allowed --rank-by slot --map-by slot:pe=${OMP_NUM_THREADS} \
+        "${CONDA_PREFIX}"/bin/mpirun -n 90 --oversubscribe \
+          -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x OMP_DYNAMIC \
+          -x ROOTDIR -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES \
+          -x CLIK_PLUGIN -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH \
+           -x CLIK_DATA --mca mpi_yield_when_idle 1 --rank-by slot --map-by slot \
+          --mca pml ob1 --mca btl vader,tcp,self --bind-to core:overload-allowed \
+          --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 --report-bindings \
             cobaya-run ./projects/roman_real/EXAMPLE_EMUL_POLY1.yaml -r
 
   - macOS (arm)
 
-        mpirun -n 12 --oversubscribe cobaya-run ./projects/roman_real/EXAMPLE_EMUL_POLY1.yaml -r
+        mpirun -n 12 --oversubscribe \
+          cobaya-run ./projects/roman_real/EXAMPLE_EMUL_POLY1.yaml -r
 
 - **Nautilus**:
 
   - Linux
     
-        mpirun -n 90 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self \
-            --bind-to core:overload-allowed --rank-by slot --map-by slot:pe=${OMP_NUM_THREADS} \
-            python -m mpi4py.futures ./projects/roman_real/EXAMPLE_EMUL_NAUTILUS1.py \
-                --root ./projects/roman_real/ --outroot "EXAMPLE_EMUL_NAUTILUS1"  \
-                --maxfeval 750000 --nlive 2048 --neff 15000 --flive 0.01 --nnetworks 5
+        "${CONDA_PREFIX}"/bin/mpirun -n 90 --oversubscribe \
+          -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x OMP_DYNAMIC \
+          -x ROOTDIR -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES \
+          -x CLIK_PLUGIN -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH \
+           -x CLIK_DATA --mca mpi_yield_when_idle 1 --rank-by slot --map-by slot \
+          --mca pml ob1 --mca btl vader,tcp,self --bind-to core:overload-allowed \
+          --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 --report-bindings \
+          python -m mpi4py.futures ./projects/roman_real/EXAMPLE_EMUL_NAUTILUS1.py \
+            --root ./projects/roman_real/ \
+            --outroot "EXAMPLE_EMUL_NAUTILUS1" \
+            --maxfeval 750000 \
+            --nlive 2048 \
+            --neff 15000 \
+            --flive 0.01 \
+            --nnetworks 5
 
   - macOS (arm)
 
-        mpirun -n 12 --oversubscribe python -m mpi4py.futures ./projects/roman_real/EXAMPLE_EMUL_NAUTILUS1.py \
-                --root ./projects/roman_real/ --outroot "EXAMPLE_EMUL_NAUTILUS1"  \
-                --maxfeval 750000 --nlive 2048 --neff 15000 --flive 0.01 --nnetworks 5
+        mpirun -n 12 --oversubscribe \
+          python -m mpi4py.futures ./projects/roman_real/EXAMPLE_EMUL_NAUTILUS1.py \
+            --root ./projects/roman_real/ \
+            --outroot "EXAMPLE_EMUL_NAUTILUS1" \
+            --maxfeval 750000 \
+            --nlive 2048 \
+            --neff 15000 \
+            --flive 0.01 \
+            --nnetworks 5
 
 - **Emcee**:
 
   - Linux
     
-        mpirun -n 51 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self \
-            --bind-to core:overload-allowed --rank-by slot --map-by slot:pe=${OMP_NUM_THREADS} \
-            python ./projects/roman_real/EXAMPLE_EMUL_EMCEE1.py --root ./projects/roman_real/ \
-                --outroot "EXAMPLE_EMUL_EMCEE1" --maxfeval 1000000
+        "${CONDA_PREFIX}"/bin/mpirun -n 51 --oversubscribe \
+          -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x OMP_DYNAMIC \
+          -x ROOTDIR -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES \
+          -x CLIK_PLUGIN -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH \
+           -x CLIK_DATA --mca mpi_yield_when_idle 1 --rank-by slot --map-by slot \
+          --mca pml ob1 --mca btl vader,tcp,self --bind-to core:overload-allowed \
+          --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 --report-bindings \
+          python ./projects/roman_real/EXAMPLE_EMUL_EMCEE1.py \
+            --root ./projects/roman_real/ \
+            --outroot "EXAMPLE_EMUL_EMCEE1" \
+            --maxfeval 1000000
 
   - macOS (arm)
 
-        mpirun -n 12 --oversubscribe python ./projects/roman_real/EXAMPLE_EMUL_EMCEE1.py \
-            --root ./projects/roman_real/ --outroot "EXAMPLE_EMUL_EMCEE1" --maxfeval 1000000
+        mpirun -n 12 --oversubscribe \
+          python ./projects/roman_real/EXAMPLE_EMUL_EMCEE1.py \
+            --root ./projects/roman_real/ \
+            --outroot "EXAMPLE_EMUL_EMCEE1" \
+            --maxfeval 1000000
 
-  The number of steps per MPI worker is $n_{\\rm sw} =  {\\rm maxfeval}/n_{\\rm w}$,
-  with the number of walkers being $n_{\\rm w}={\\rm max}(3n_{\\rm params},n_{\\rm MPI})$.
+
+  The number of steps per MPI worker is $n_{\rm sw} =  {\rm maxfeval}/n_{\rm w}$,
+  with the number of walkers being $n_{\rm w}={\rm max}(3n_{\rm params},n_{\rm MPI})$.
   For proper convergence, each walker should traverse 50 times the autocorrelation length ($\tau$),
   which is provided in the header of the output chain file. A reasonable rule of thumb is to assume
-  $\tau > 200$ and therefore set ${\\rm maxfeval} > 10,000 \times n_{\\rm w}$.
+  $\tau > 200$ and therefore set ${\rm maxfeval} > 10,000 \times n_{\rm w}$.
   Finally, our code sets burn-in (per walker) at $5 \times \tau$.
 
   With these numbers, users may ask when `Emcee` is preferable to `Metropolis-Hastings`?
   Here are a few numbers based on our `Planck CMB (l < 396) + SN + BAO + LSST-Y1` test case.
-  1) `MH` achieves convergence with $n_{\\rm sw} \sim 150,000$ (number of steps per walker), but only requires four walkers.
-  2) `Emcee` has $\tau \sim 300$, so it requires $n_{\\rm sw} \sim 15,000$ when running with $n_{\\rm w}=114$.
+  1) `MH` achieves convergence with $n_{\rm sw} \sim 150,000$ (number of steps per walker), but only requires four walkers.
+  2) `Emcee` has $\tau \sim 300$, so it requires $n_{\rm sw} \sim 15,000$ when running with $n_{\rm w}=114$.
   
   Conclusion: `Emcee` requires $\sim 3$ more evaluations in this case, but the number of evaluations per MPI worker (assuming one MPI worker per walker) is reduced by $\sim 10$.
   Therefore, `Emcee` seems well-suited for chains where the evaluation of a single cosmology is time-consuming (and there is no slow/fast decomposition).
@@ -253,63 +339,83 @@ Now, users must follow all the steps below.
 
   - Linux
     
-        mpirun -n 51 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self \
-            --bind-to core:overload-allowed --rank-by slot --map-by slot:pe=${OMP_NUM_THREADS} \
-            python ./projects/roman_real/EXAMPLE_EMUL_MINIMIZE1.py --root ./projects/roman_real/ \
-                --outroot "EXAMPLE_EMUL_MIN1" --nstw 450
+        "${CONDA_PREFIX}"/bin/mpirun -n 51 --oversubscribe \
+          -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x OMP_DYNAMIC \
+          -x ROOTDIR -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES \
+          -x CLIK_PLUGIN -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH \
+           -x CLIK_DATA --mca mpi_yield_when_idle 1 --rank-by slot --map-by slot \
+          --mca pml ob1 --mca btl vader,tcp,self --bind-to core:overload-allowed \
+          --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 --report-bindings \
+          python ./projects/roman_real/EXAMPLE_EMUL_MINIMIZE1.py \
+            --root ./projects/roman_real/ \
+            --outroot "EXAMPLE_EMUL_MIN1" \
+            --nstw 450
 
   - macOS (arm)
 
-        mpirun -n 12 python ./projects/roman_real/EXAMPLE_EMUL_MINIMIZE1.py --root ./projects/roman_real/ \
-              --outroot "EXAMPLE_EMUL_MIN1" --nstw 450
+        mpirun -n 12 --oversubscribe \
+          python ./projects/roman_real/EXAMPLE_EMUL_MINIMIZE1.py \
+            --root ./projects/roman_real/ \
+            --outroot "EXAMPLE_EMUL_MIN1" \
+            --nstw 450
 
-  The number of steps per Emcee walker per temperature is $n_{\\rm stw}$,
-  and the number of walkers is $n_{\\rm w}={\\rm max}(3n_{\\rm params},n_{\\rm MPI})$.
-  The minimum number of total evaluations is $3n_{\\rm params} \times n_{\rm T} \times n_{\\rm stw}$, which can be distributed among $n_{\\rm MPI} = 3n_{\\rm params}$ MPI processes for faster results.
+  The number of steps per Emcee walker per temperature is $n_{\rm stw}$,
+  and the number of walkers is $n_{\rm w}={\rm max}(3n_{\rm params},n_{\rm MPI})$.
+  The minimum number of total evaluations is $3n_{\rm params} \times n_{\rm T} \times n_{\rm stw}$, which can be distributed among $n_{\rm MPI} = 3n_{\rm params}$ MPI processes for faster results.
     
-  The scripts that generated the plots below are provided at `scripts/EXAMPLE_PLOT_MIN_COMPARE_CONV[1-2].py`
+  The scripts that generated the plots below are provided at `scripts/EXAMPLE_PLOT_MIN_COMPARE_CONV.py`
 
   <p align="center">
   <img width="750" height="500" alt="compare_min_roman_real" src="https://github.com/user-attachments/assets/1db89ed7-c186-4967-85a6-1f9b59e1f3ce" />
   </p>
 
-  In our testing, $n_{\\rm stw} \sim 250$ worked reasonably well up to $n_{\rm param} \sim \mathcal{O}(10)$.
+  In our testing, $n_{\rm stw} \sim 250$ worked reasonably well up to $n_{\rm param} \sim \mathcal{O}(10)$.
 
 - **Profile**: 
 
   - Linux
     
-          mpirun -n 51 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self \
-            --bind-to core:overload-allowed --rank-by slot --map-by slot:pe=${OMP_NUM_THREADS} \
+          "${CONDA_PREFIX}"/bin/mpirun -n 51 --oversubscribe \
+            -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x OMP_DYNAMIC \
+            -x ROOTDIR -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES \
+            -x CLIK_PLUGIN -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH \
+             -x CLIK_DATA --mca mpi_yield_when_idle 1 --rank-by slot --map-by slot \
+            --mca pml ob1 --mca btl vader,tcp,self --bind-to core:overload-allowed \
+            --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 --report-bindings \
             python ./projects/roman_real/EXAMPLE_EMUL_PROFILE1.py \
-              --root ./projects/roman_real/ --cov 'chains/EXAMPLE_EMUL_MCMC1.covmat' \
-              --outroot "EXAMPLE_EMUL_PROFILE1" --factor 3 --nstw 450 --numpts 10 \
-              --profile ${SLURM_ARRAY_TASK_ID} \
+              --root ./projects/roman_real/ \
+              --cov 'chains/EXAMPLE_EMUL_MCMC1.covmat' \
+              --outroot "EXAMPLE_EMUL_PROFILE1" \
+              --factor 3 --nstw 450 --numpts 10 \
+              --profile 1 \
               --minfile="./projects/roman_real/chains/EXAMPLE_EMUL_MIN1.txt"
 
-  -  macOS (arm)
+  - macOS (arm)
 
-          mpirun -n 51 --oversubscribe python ./projects/roman_real/EXAMPLE_EMUL_PROFILE1.py \
-              --root ./projects/roman_real/ --cov 'chains/EXAMPLE_EMUL_MCMC1.covmat' \
-              --outroot "EXAMPLE_EMUL_PROFILE1" --factor 3 --nstw 450 --numpts 10 \
-              --profile ${SLURM_ARRAY_TASK_ID} \
+          mpirun -n 12 --oversubscribe \
+            python ./projects/roman_real/EXAMPLE_EMUL_PROFILE1.py \
+              --root ./projects/roman_real/ \
+              --cov 'chains/EXAMPLE_EMUL_MCMC1.covmat' \
+              --outroot "EXAMPLE_EMUL_PROFILE1" \
+              --factor 3 --nstw 450 --numpts 10 \
+              --profile 1 \
               --minfile="./projects/roman_real/chains/EXAMPLE_EMUL_MIN1.txt"
 
   The argument `factor` specifies the start and end of the parameter being profiled:
 
-      start value ~ mininum value - factor*np.sqrt(np.diag(cov))
-      end   value ~ mininum value + factor*np.sqrt(np.diag(cov))
+      start value ~ minimum value - factor*np.sqrt(np.diag(cov))
+      end   value ~ minimum value + factor*np.sqrt(np.diag(cov))
 
   We advise ${\rm factor} \sim 3$ for parameters that are well constrained by the data when a covariance matrix is provided.
   If `cov` is not supplied, the code estimates one internally from the prior.
   If a parameter is poorly constrained or `cov` is not given, we recommend ${\rm factor} \ll 1$.
 
-  The script of the plot below is provided at `projects/roman_real/scripts/EXAMPLE_PLOT_PROFILE[1-2].py`
+  The script of the plot below is provided at `projects/roman_real/scripts/EXAMPLE_PLOT_PROFILE2.py`
 
   Profile 1: `Cosmic Shear only (plus weak Gaussian priors)`
 
   <p align="center">
-  <img width="750" height="500" alt="example_lssty1_profile1" src="https://github.com/user-attachments/assets/2fea9d3c-524a-49d9-ae89-cb2bb26594e9" />
+  <img width="750" height="500" alt="example_roman_real_profile1" src="https://github.com/user-attachments/assets/2fea9d3c-524a-49d9-ae89-cb2bb26594e9" />
   </p>
 
 > [!Warning]
@@ -353,37 +459,47 @@ Now, users must follow all the steps below.
 
   - Linux
     
-        export OMP_NUM_THREADS=4; export OMP_PROC_BIND=close; export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE
+        export OMP_NUM_THREADS=4; export OMP_PROC_BIND=close; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
 
   - macOS (arm)
     
-        export OMP_NUM_THREADS=4; export OMP_PROC_BIND=disabled; export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE
+        export OMP_NUM_THREADS=4; export OMP_PROC_BIND=disabled; \
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
+        export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
     
- **Step :three:** Run `cobaya-run` on the first emulator example, following the commands below (here we only provide lsst-y1 examples).
+ **Step :three:** Run `cobaya-run` on the first emulator example, following the commands below (here we only provide roman_real examples).
 
 - **One model evaluation**:
 
   - Linux
     
-        mpirun -n 1 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self --report-bindings \
-           --bind-to core:overload-allowed --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
-           cobaya-run ./projects/roman_real/EXAMPLE_EMUL2_EVALUATE1.yaml -f
+        "${CONDA_PREFIX}"/bin/mpirun -n 1 --oversubscribe \
+          --mca pml ob1 --mca btl vader,tcp,self \
+          --bind-to core:overload-allowed --report-bindings \
+          --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+          cobaya-run ./projects/roman_real/EXAMPLE_EMUL2_EVALUATE1.yaml -f
 
   - macOS (arm)
     
-        mpirun -n 1 --oversubscribe  cobaya-run ./projects/roman_real/EXAMPLE_EMUL2_EVALUATE1.yaml -f
+        mpirun -n 1 --oversubscribe \
+          cobaya-run ./projects/roman_real/EXAMPLE_EMUL2_EVALUATE1.yaml -f
     
 - **MCMC (Metropolis-Hastings Algorithm)**:
 
   - Linux
     
-        mpirun -n 4 --oversubscribe --mca pml ^ucx --mca btl vader,tcp,self --report-bindings \
-            --bind-to core:overload-allowed --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
-            cobaya-run ./projects/roman_real/EXAMPLE_EMUL_EMUL2_MCMC1.yaml -r
+        "${CONDA_PREFIX}"/bin/mpirun -n 4 --oversubscribe \
+          --mca pml ob1 --mca btl vader,tcp,self \
+          --bind-to core:overload-allowed --report-bindings \
+          --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+          cobaya-run ./projects/roman_real/EXAMPLE_EMUL2_MCMC1.yaml -r
 
   - macOS (arm)
 
-        mpirun -n 4 --oversubscribe cobaya-run ./projects/roman_real/EXAMPLE_EMUL2_MCMC1.yaml -r
+        mpirun -n 4 --oversubscribe \
+          cobaya-run ./projects/roman_real/EXAMPLE_EMUL2_MCMC1.yaml -r
     
 Details on the matter power spectrum emulator designs will be presented in the [emulator_code](https://github.com/CosmoLike/emulators_code) repository. Basically, we apply standard neural network techniques to generalize the *syren-new* Eq. 6 of [arXiv:2410.14623](https://arxiv.org/abs/2410.14623) formula for the linear power spectrum (w0waCDM with a fixed neutrino mass of $0.06$ eV) to new models, extended ranges, or higher precision. Similarly, we use networks to generalize the *syren-Halofit* LCDM nonlinear boost fit (Eq. 11 of [arXiv:2402.17492](https://arxiv.org/abs/2402.17492)).
 
@@ -402,38 +518,44 @@ Details on the matter power spectrum emulator designs will be presented in the [
 
 # Training Roman ML emulators <a name="roman_train__emul"></a>
 
-Emulators for Roman are stored on `emulators/`, we usually provide the YAML filed used to train them. For example, datavectors required to train an emulator 
+Emulators for Roman are stored on `emulators/`, we usually provide the YAML files used to train them. For example, datavectors required to train an emulator 
 with settings similar to
 
-    nla_cosmic_shear/w0wa_takahashi_cs_CNN.h5
-    nla_cosmic_shear/w0wa_takahashi_cs_CNN.h5
+    nla_cosmic_shear/w0wa_takahashi_cs_cnn.h5
+    nla_cosmic_shear/w0wa_hmcode2020_cs_cnn.h5
 
 can be found at
 
-    nla_cosmic_shear/w0wa_takahashi_cs_CNN.yaml
+    nla_cosmic_shear/w0wa_takahashi_cs_cnn.yaml
 
 The repository `emulators_code` provides the script `dataset_generator_lensing.py` that can generate data vectors for any cosmological project. 
 
 ## Compute data vectors to train a cosmic shear data vector emulator
 
-   The script below computes data vectors for cosmic shear (NLA, $w_0w_a$ model and Halofit.
+   The script below computes data vectors for cosmic shear (NLA, $w_0w_a$ model, and Halofit).
 
-       mpirun -n 10 --oversubscribe \
-         python external_modules/code/emulators/emultrf/emultraining/dataset_generator_lensing.py \
-           --root projects/roman_real/  \
-           --fileroot emulators/nla_cosmic_shear/ \
-           --nparams 10000 \
-           --yaml 'w0wa_takahashi_cs_cnn.yaml' \
-           --datavsfile 'w0wa_takahashi_dvs_train' \
-           --paramfile 'w0wa_takahashi_params_train' \
-           --failfile  'w0wa_takahashi_params_failed_train' \
-           --chain 0 \
-           --unif 0 \
-           --temp 64 \
-           --maxcorr 0.15 \
-           --freqchk 2000 \
-           --loadchk 0 \
-           --append 1 
+    "${CONDA_PREFIX}"/bin/mpirun -n 10 --oversubscribe \
+    -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x OMP_DYNAMIC \
+    -x ROOTDIR -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES \
+    -x CLIK_PLUGIN -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH \
+     -x CLIK_DATA --mca mpi_yield_when_idle 1 --rank-by slot --map-by slot \
+    --mca pml ob1 --mca btl vader,tcp,self --bind-to core:overload-allowed \
+    --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 --report-bindings \
+    python external_modules/code/emulators/emultrf/emultraining/dataset_generator_lensing.py \
+      --root projects/roman_real/  \
+      --fileroot emulators/nla_cosmic_shear/ \
+      --nparams 10000 \
+      --yaml 'w0wa_takahashi_cs_cnn.yaml' \
+      --datavsfile 'w0wa_takahashi_dvs_train' \
+      --paramfile 'w0wa_takahashi_params_train' \
+      --failfile  'w0wa_takahashi_params_failed_train' \
+      --chain 0 \
+      --unif 0 \
+      --temp 64 \
+      --maxcorr 0.15 \
+      --freqchk 2000 \
+      --loadchk 0 \
+      --append 1
 
 - The requested number of data vectors is given by the `--nparams` flag.
 
@@ -466,16 +588,5 @@ The repository `emulators_code` provides the script `dataset_generator_lensing.p
     In the two cases below, the code determines which remaining data vectors to compute based on the flags saved in the `--failfile` file.
       - Case 1 (`--loadchk 1` and `--append 1`): the code loads params from the chk and appends `~nparams` models to it. 
       - Case 2 (`--loadchk 1` and `--append 0`): the code loads the params.
-  
-> [!Warning]
-> Computing data vectors for training requires so many MPI processes that, assuming here an HPC environment, it is advantageous to 
-> distribute the job among multiple compute nodes. Running Cocoa on multiple nodes requires a few modifications to the MPI command, as indicated below:
->
-> - Replace `--mca btl vader,tcp,self` with `--mca btl tcp,self` (vader is a fast communication protocol that only works in a single node)
-> - Add the line `-x PATH -x LD_LIBRARY_PATH -x CONDA_PREFIX -x ROOTDIR -x OMP_NUM_THREADS \` 
-> - replace `python` by full path `${ROOTDIR}/.local/bin/python`
-> - replace mpirun by full path "${CONDA_PREFIX}"/bin/mpirun
-> 
-> The SLURM script [scripts/random_scripts_used_by_dev/EXAMPLE_EMUL_TRAINX_SBU.sbatch](scripts/random_scripts_used_by_dev/EXAMPLE_EMUL_TRAINX_SBU.sbatch]) exemplify such changes
 
  
