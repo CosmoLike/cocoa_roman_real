@@ -4,15 +4,22 @@ This repository implements external baryonic feedback suppresion models as a `Co
 - SP(k), Salcido et al 2023 https://arxiv.org/abs/2305.09710
 - BCEmu, Giri & Schneider 2021 https://arxiv.org/abs/2108.08863
 - FlamingoBaryonResponseEmulator, Schaller et al 2024 https://arxiv.org/abs/2410.17109
-See the corresponding papers for more details.
+
+See the corresponding papers for more details on the parameterizations.
 
 ## Setup
 
 First, navigate to the Cocoa projects folder and clone the repository as `roman_real`:
+
 ```
- git clone https://github.com/nihardalal/cocoa_roman_real_baryons.git roman_real
+    git clone https://github.com/nihardalal/cocoa_roman_real_baryons.git roman_real
 ```
-You'll also need to install [SP(k)](https://github.com/jemme07/pyspk) and [BCEmu](https://github.com/sambit-giri/BCemu) in your .local environment (after `source start_cocoa.sh`). BCEmu further needs `smt==1.0.0` -- other versions are incompatible with the emulator and may break the environment.
+
+You'll also need to install [SP(k)](https://github.com/jemme07/pyspk), [BCEmu](https://github.com/sambit-giri/BCemu) and [FlamingoBaryonResponseEmulator](https://github.com/FLAMINGOSIM/FlamingoBaryonResponseEmulator) in your `.local` environment (i.e. after `source start_cocoa.sh`). BCEmu further needs `smt==1.0.0` -- other versions are incompatible with the emulator and may break the environment. You can do this with:
+
+```
+    pip install pyspk BCemu smt==1.0.0 FlamingoBaryonResponseEmulator
+```
 
 ## Examples
 
