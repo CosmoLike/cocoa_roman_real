@@ -534,28 +534,28 @@ The repository `emulators_code` provides the script `dataset_generator_lensing.p
 
    The script below computes data vectors for cosmic shear (NLA, $w_0w_a$ model, and Halofit).
 
-       "${CONDA_PREFIX}"/bin/mpirun -n 10 --oversubscribe \
-        -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x OMP_DYNAMIC \
-        -x ROOTDIR -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES \
-        -x CLIK_PLUGIN -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH \
-         -x CLIK_DATA --mca mpi_yield_when_idle 1 --rank-by slot --map-by slot \
-        --mca pml ob1 --mca btl vader,tcp,self --bind-to core:overload-allowed \
-        --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 --report-bindings \
-        python external_modules/code/emulators/emultrf/emultraining/dataset_generator_lensing.py \
-          --root projects/roman_real/  \
-          --fileroot emulators/nla_cosmic_shear/ \
-          --nparams 10000 \
-          --yaml 'w0wa_takahashi_cs_cnn.yaml' \
-          --datavsfile 'w0wa_takahashi_dvs_train' \
-          --paramfile 'w0wa_takahashi_params_train' \
-          --failfile  'w0wa_takahashi_params_failed_train' \
-          --chain 0 \
-          --unif 0 \
-          --temp 64 \
-          --maxcorr 0.15 \
-          --freqchk 2000 \
-          --loadchk 0 \
-          --append 1
+    "${CONDA_PREFIX}"/bin/mpirun -n 10 --oversubscribe \
+    -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x OMP_DYNAMIC \
+    -x ROOTDIR -x OMP_NUM_THREADS -x OMP_PROC_BIND -x OMP_PLACES \
+    -x CLIK_PLUGIN -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH \
+     -x CLIK_DATA --mca mpi_yield_when_idle 1 --rank-by slot --map-by slot \
+    --mca pml ob1 --mca btl vader,tcp,self --bind-to core:overload-allowed \
+    --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 --report-bindings \
+    python external_modules/code/emulators/emultrf/emultraining/dataset_generator_lensing.py \
+      --root projects/roman_real/  \
+      --fileroot emulators/nla_cosmic_shear/ \
+      --nparams 10000 \
+      --yaml 'w0wa_takahashi_cs_cnn.yaml' \
+      --datavsfile 'w0wa_takahashi_dvs_train' \
+      --paramfile 'w0wa_takahashi_params_train' \
+      --failfile  'w0wa_takahashi_params_failed_train' \
+      --chain 0 \
+      --unif 0 \
+      --temp 64 \
+      --maxcorr 0.15 \
+      --freqchk 2000 \
+      --loadchk 0 \
+      --append 1
 
 - The requested number of data vectors is given by the `--nparams` flag.
 
