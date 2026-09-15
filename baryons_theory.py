@@ -25,6 +25,7 @@ import logging
 import pyspk as spk
 import BCemu
 import FlamingoBaryonResponseEmulator as fre
+import baccoemu
 from scipy.interpolate import interp1d
 from astropy.cosmology import FlatLambdaCDM
 from cobaya.theory import Theory
@@ -33,7 +34,8 @@ from cobaya.log import LoggedError
 AVAILABLE_BARYON_MODELS = {
     1: "SP(k)",
     2: "BCEmu",
-    3: "FlamingoBaryonResponseEmulator"
+    3: "FlamingoBaryonResponseEmulator",
+    4: "BACCOemu",
 }
 
 class BaryonSuppression(Theory):
@@ -84,6 +86,15 @@ class BaryonSuppression(Theory):
                 "mstar_sigma_flamingo": None,
                 "jet_frac_flamingo": None,
             }
+        elif self.baryon_model == 4: # BACCOemu
+            self.params = {
+                "M_c_baccoemu": None,
+                "eta_baccoemu": None,
+                "beta_baccoemu": None,
+                "M1_z0_cen_baccoemu": None,
+                "theta_inn_baccoemu": None,
+            }
+            self.baccoemulator = baccoemu.Matter_powerspectrum(baryonic_model_name='Burger2025')
         else:
             raise LoggedError(self.log, f"Invalid choice of `baryon_model`. Available options are 1 (SP(k), 2 (BCEmu), or 3 (FlamingoEmulator))")
         
@@ -114,6 +125,13 @@ class BaryonSuppression(Theory):
         self.fgas_sigma_min, self.fgas_sigma_max = -10.0, 4.0
         self.mstar_sigma_min, self.mstar_sigma_max = -3.0, 2.0
         self.jet_frac_min, self.jet_frac_max = 0.0, 1.0
+
+        # Parameter validation bounds for BACCOemu (based on Burger+ 2025 and reasonable extensions)
+        self.M_c_baccoemu_min, self.M_c_baccoemu_max = 10, 16
+        self.eta_baccoemu_min, self.eta_baccoemu_max = -0.7, 0.2
+        self.beta_baccoemu_min, self.beta_baccoemu_max = -1, 0.7
+        self.M1_z0_cen_baccoemu_min, self.M1_z0_cen_baccoemu_max = 9, 13
+        self.theta_inn_baccoemu_min, self.theta_inn_baccoemu_max = -2, 0
 
         self.log.debug(
             "BaryonSuppression: Initialized with baryon_model=%d, "
@@ -227,9 +245,11 @@ class BaryonSuppression(Theory):
             suppression_dict = self._calculate_bcemu(params_values_dict)
         elif self.baryon_model == 3:
             suppression_dict = self._calculate_flamingo(params_values_dict)
+        elif self.baryon_model == 4:
+            suppression_dict = self._calculate_baccoemu(params_values_dict)
         else:
             self.log.error(
-                "baryon_model=%d is invalid; must be 1 (pyspk), 2 (bcemu), or 3 (flamingo); "
+                "baryon_model=%d is invalid; must be 1 (pyspk), 2 (bcemu), 3 (flamingo), or 4 (BACCOemu); "
                 "returning unity suppression",
                 self.baryon_model,
             )
@@ -695,6 +715,74 @@ class BaryonSuppression(Theory):
                 str(e),
             )
             return self._unity_suppression()
+
+        return suppression_dict
+
+    def _calculate_baccoemu(self, params_values_dict):
+        suppression_dict = {}
+
+        A_s = self.provider.get_param("As")
+        ns = self.provider.get_param("ns")
+        omegab = self.provider.get_param("omegab")
+        mnu = self.provider.get_param("mnu")
+        h = self.provider.get_param("H0")/100
+        omegacb = self.provider.get_param("omegam") - mnu/94.13/(h*h)
+        try:
+            w0 = self.provider.get_param("w")
+        except (KeyError, AttributeError):
+            w0 = -1
+        try:
+            wa = self.provider.get_param("wa")
+        except (KeyError, AttributeError):
+            wa = 0
+        
+        print("-----------")
+        print(f"A_s = {A_s}")
+        print(f"omegab = {omegab}")
+        print(f"omegacb = {omegacb}")
+        print(f"mnu = {mnu}")
+        print(f"w0 = {w0}")
+        print(f"wa = {wa}")
+        print("-----------")
+        
+        common_params = {
+            'omega_cold'    :  omegacb,
+            'A_s'           :  A_s,
+            'omega_baryon'  :  omegab,
+            'ns'            :  ns,
+            'hubble'        :  h,
+            'neutrino_mass' :  mnu,
+            'w0'            :  w0,
+            'wa'            :  wa,
+            'M_c'           :  params_values_dict.get("M_c_baccoemu"),
+            'eta'           :  params_values_dict.get("eta_baccoemu"),
+            'beta'          :  params_values_dict.get("beta_baccoemu") ,
+            'M1_z0_cen'     :  params_values_dict.get("M1_z0_cen_baccoemu") ,
+            'theta_inn'     :  params_values_dict.get("theta_inn_baccoemu") ,
+            # 'expfactor'     :  1, # This will be set at each redshift
+        }
+        for i_z, z_val in enumerate(self.requested_z):
+            a = 1/(1+z_val)
+            if a < 0.25: 
+                self.log.debug(
+                    "BACCOemu z=%.3f outside calibration range a \\in [0.25, 1.0]; "
+                    "using unity suppression for this redshift",
+                    z_val,
+                )
+                suppression_dict[z_val] = np.ones_like(self.requested_k)
+                continue
+            common_params.update({"expfactor": a})
+            k_bacco, S = self.baccoemulator.get_baryonic_boost(**common_params)
+            interp_bacco = interp1d(
+                np.log10(k_bacco),
+                np.log(S),
+                kind="linear",
+                fill_value="extrapolate",
+                bounds_error=False,
+                assume_sorted=True,
+            )
+            sup_interp = np.exp(interp_bacco(np.log10(self.requested_k) - np.log10(h)))
+            suppression_dict[z_val] = sup_interp
 
         return suppression_dict
 
