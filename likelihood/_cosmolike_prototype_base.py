@@ -130,8 +130,11 @@ class _cosmolike_prototype_base(DataSetLikelihood):
             if self.non_linear_emul == 1:
                 self.emulator = ee2.PyEuclidEmulator()
 
-            if self.baryon_suppression != 0:
+            # JVR NOTE: introducing the `external_baryon_suppression` variable to the likelihood
+            # This option is excludent with using PCA and adding baryons to DV
+            if self.external_baryon_suppression:
                 self.use_baryon_pca = False
+                self.add_baryons_on_dv = False
 
             if self.create_baryon_pca:
                 self.use_baryon_pca = False
@@ -140,7 +143,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
                 if self.add_baryons_on_dv:
                     sim = self.which_bsims_add_on_dv
                     self.allsims = ini.relativeFileName("all_sims_hdf5_file")
-                    ci.init_baryons_contamination(sim=sim, allsims=allsims)
+                    ci.init_baryons_contamination(sim=sim, allsims=self.allsims)
 
         if self.use_baryon_pca:
             baryon_pca_file = ini.relativeFileName("baryon_pca_file")
@@ -203,9 +206,9 @@ class _cosmolike_prototype_base(DataSetLikelihood):
                 },
             }
 
-            # Add baryon suppression theory block requirement (if enabled)
-            # Only request suppression factors when baryon_suppression != 0
-            if self.baryon_suppression != 0:
+            # JVR NOTE: our likelihood must communicate with the baryons theory which (k,z) values to compute the baryon suppression factor
+            # NOTE: log10k_interp_2D is in 1/Mpc, the baryons theory must do the conversion if necessary
+            if self.external_baryon_suppression:
                 reqs["baryon_suppression"] = {
                     "z": self.z_interp_2D,
                     "k": np.power(
@@ -269,7 +272,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
                 ).logP(self.z_interp_2D, np.power(10.0, self.log10k_interp_2D)).flatten(
                     order="F"
                 ) + np.log(h**3)
-                # on z < 10.0, replace it with EE2
+                # on z < 10.0, replace it with Halofit
                 lnPNL = np.where(
                     (self.z_interp_2D < 10)[:, None],
                     lnPL.reshape(
@@ -303,7 +306,7 @@ class _cosmolike_prototype_base(DataSetLikelihood):
             # Apply baryon suppression factors from theory block (if enabled)
             # The baryon suppression theory block computes S(k,z) for each requested z
             # and applies calibration masking. Here we simply retrieve and apply those factors.
-            if self.baryon_suppression != 0:
+            if self.external_baryon_suppression:
                 try:
                     supp_dict = self.provider.get_result("baryon_suppression")
                     self.log.info(
@@ -314,8 +317,8 @@ class _cosmolike_prototype_base(DataSetLikelihood):
                     for i, z_val in enumerate(self.z_interp_2D):
                         if z_val in supp_dict:
                             sup_array = supp_dict[z_val]
-                            lnbt_spk = np.log(sup_array)
-                            lnPNL[i :: self.len_z_interp_2D] += lnbt_spk
+                            lnbt_baryon = np.log(sup_array)
+                            lnPNL[i :: self.len_z_interp_2D] += lnbt_baryon
                             self.log.debug(
                                 "Applied baryon suppression at z=%.3f: "
                                 "min_sup=%.6f, max_sup=%.6f",

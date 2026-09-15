@@ -1,7 +1,25 @@
-timing: False
+timing: True
 debug: False
 stop_at_error: False
 output: ./projects/roman_real/chains/EXAMPLE_DMO
+
+theory:
+  camb:
+    path: ./external_modules/code/CAMB
+    stop_at_error: False
+    use_renames: True
+    extra_args:
+      halofit_version: takahashi
+      AccuracyBoost: 1.05
+      dark_energy_model: ppf
+      accurate_massive_neutrino_transfers: false
+      k_per_logint: 10
+      kmax: 10
+  # The commented block would be necessary to compute baryon suppression from external codes
+  # baryon_suppression:
+  #   python_path: ./projects/roman_real
+  #   class: pyspk_theory.BaryonSuppression
+  #   baryon_model: 1
 
 likelihood:
   roman_real.cosmic_shear:
@@ -12,7 +30,7 @@ likelihood:
     integration_accuracy: 0
     kmax_boltzmann: 7.5
     non_linear_emul: 2
-    baryon_suppression: 0 # This turns off baryon suppression
+    external_baryon_suppression: False # This ignores any external baryon suppression (default value)
     IA_model: 0
     IA_redshift_evolution: 3
     ggl_exclude: [[6,0],[7,0],[7,1]]
@@ -81,36 +99,6 @@ params:
     latex: m_nu
   w:
     value: -1
-  alpha_spk:
-    prior:
-      min: 3.8
-      max: 4.6
-    ref:
-      dist: norm
-      loc: 4.189
-      scale: 0.12
-    proposal: 0.12
-    latex: alpha_SPk
-  beta_spk:
-    prior:
-      min: 1.0
-      max: 1.6
-    ref:
-      dist: norm
-      loc: 1.273
-      scale: 0.08
-    proposal: 0.08
-    latex: beta_SPk
-  gamma_spk:
-    prior:
-      min: 0.1
-      max: 0.75
-    ref:
-      dist: norm
-      loc: 0.298
-      scale: 0.10
-    proposal: 0.10
-    latex: gamma_SPk
   As:
     value: 'lambda As_1e9: 1e-9 * As_1e9'
     latex: A_\mathrm{s}
@@ -120,24 +108,6 @@ params:
   omegach2:
     value: 'lambda omegam, omegab, mnu, H0: (omegam-omegab)*(H0/100)**2-(mnu*(3.046/3)**0.75)/94.0708'
     latex: \Omega_\mathrm{c} h^2
-  
-
-theory:
-  camb:
-    path: ./external_modules/code/CAMB
-    stop_at_error: False
-    use_renames: True
-    extra_args:
-      halofit_version: takahashi
-      AccuracyBoost: 1.05
-      dark_energy_model: ppf
-      accurate_massive_neutrino_transfers: false
-      k_per_logint: 10
-      kmax: 10
-  baryon_suppression:
-    python_path: ./projects/roman_real
-    class: pyspk_theory.BaryonSuppression
-    baryon_model: 1
 
 sampler:
   evaluate:
@@ -149,9 +119,6 @@ sampler:
       omegab: 0.0495
       omegam: 0.316
       mnu: 0.06
-      alpha_spk: 4.189
-      beta_spk: 1.273
-      gamma_spk: 0.298
       roman_DZ_S1: 0.0
       roman_DZ_S2: 0.0
       roman_DZ_S3: 0.0

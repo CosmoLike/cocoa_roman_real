@@ -13,10 +13,10 @@ Physics Background:
 
     References:
     - pyspk: Salcido+ 2015 (arXiv:2305.09710)
-    — BCEmu: Giri+ 2021 (arxiv:2108.08863)
+    - BCEmu: Giri+ 2021 (arxiv:2108.08863)
     - Flamingo: Schaller+ 2025 (arxiv:2410.17109)
 
-Author: Nihar Dalal, Kunhao Zhong, CoCoA Developers
+Author: Nihar Dalal, Kunhao Zhong, João Rebouças, CoCoA Developers
 Date: May 2026
 """
 
@@ -30,6 +30,11 @@ from astropy.cosmology import FlatLambdaCDM
 from cobaya.theory import Theory
 from cobaya.log import LoggedError
 
+AVAILABLE_BARYON_MODELS = {
+    1: "SP(k)",
+    2: "BCEmu",
+    3: "FlamingoBaryonResponseEmulator"
+}
 
 class BaryonSuppression(Theory):
     """
@@ -44,15 +49,8 @@ class BaryonSuppression(Theory):
         log (logger): Cobaya logger for warnings/errors
     """
 
-    # Define the parameters this theory class needs to evaluate.
-    params = {
-        "alpha_spk": None,  # Alpha parameter for pyspk model
-        "beta_spk": None,  # Beta parameter for pyspk model
-        "gamma_spk": None,  # Gamma parameter for pyspk model
-    }
-
     # Define configuration defaults
-    baryon_model: int = 1  # 1=pyspk, 2=bcemu (deferred), 3=pca (deferred)
+    baryon_model: int = 1  # 1=pyspk, 2=bcemu, 3=flamingo
 
     def initialize(self):
         """
@@ -63,11 +61,37 @@ class BaryonSuppression(Theory):
         - Calibration ranges for pyspk
         - Parameter validation bounds (3-sigma from priors)
         """
+        # Define the parameters this theory class needs to evaluate.
+        if self.baryon_model == 1: # SP(k)
+            self.params = {
+                "alpha_spk": None,  # Alpha parameter for pyspk model
+                "beta_spk": None,   # Beta parameter for pyspk model
+                "gamma_spk": None,  # Gamma parameter for pyspk model
+            }
+        elif self.baryon_model == 2: # BCemu
+            self.params = {
+                "log10Mc_bcemu": None,
+                "mu_bcemu": None,
+                "thej_bcemu": None,
+                "gamma_bcemu": None,
+                "delta_bcemu": None,
+                "eta_bcemu": None,
+                "deta_bcemu": None,
+            }
+        elif self.baryon_model == 3: # FlamingoEmulator
+            self.params = {
+                "fgas_sigma_flamingo": None,
+                "mstar_sigma_flamingo": None,
+                "jet_frac_flamingo": None,
+            }
+        else:
+            raise LoggedError(self.log, f"Invalid choice of `baryon_model`. Available options are 1 (SP(k), 2 (BCEmu), or 3 (FlamingoEmulator))")
+        
         self.requested_z = np.array([])
         self.requested_k = np.array([])
 
         # pyspk Calibration ranges (from Kunhao's testing/tuning)
-        self.z_min_calib = 0  # Below this, pyspk not well-calibrated
+        self.z_min_calib = 0    # JVR NOTE: apparently SP(k) is not calibrated below z=0.125 but we are extending to z = 0
         self.z_max_calib = 3.0  # Above this, pyspk not well-calibrated
         self.k_min_calib = 8.73e-3  # h/Mpc; below this, outside calibration
 
@@ -114,18 +138,21 @@ class BaryonSuppression(Theory):
 
     def must_provide(self, **requirements):
         """
-        Parse product requests from the likelihood.
+        Parse product requests from the Cosmolike likelihood.
 
         Stores the z and k grids at which the likelihood needs suppression factors.
         This allows the theory block to compute only what's needed, improving
         efficiency when multiple likelihoods have different k/z requirements.
+
+        Important note: the Cosmolike likelihood provides the k-array in 1/Mpc so we must convert to h/Mpc ourselves if needed
+        This is in line with what they do with Boltzmann solvers
 
         Args:
             **requirements (dict): Map of product names to their specifications.
                 Expected key: "baryon_suppression" with value
                 {
                     "z": array of redshifts,
-                    "k": array of wavenumbers (h/Mpc)
+                    "k": array of wavenumbers *(1/Mpc)*
                 }
 
         Raises:
@@ -263,6 +290,7 @@ class BaryonSuppression(Theory):
 
             # 3. Fetch cosmological parameters from provider (e.g., CAMB/CLASS)
             H0 = self.provider.get_param("H0")
+            h = H0/100
             omegam = self.provider.get_param("omegam")
             cosmo = FlatLambdaCDM(H0=H0, Om0=omegam)
 
@@ -356,7 +384,8 @@ class BaryonSuppression(Theory):
                         bounds_error=False,
                         assume_sorted=True,
                     )
-                    sup_interp = np.exp(interp_spk(np.log10(self.requested_k)))
+                    # JVR NOTE: self.requested_k is in 1/Mpc but SP(k) assumes h/Mpc units so here we must convert requested_k to h/Mpc
+                    sup_interp = np.exp(interp_spk(np.log10(self.requested_k) - np.log10(h)))
 
                 except Exception as e:
                     self.log.error(
@@ -371,7 +400,8 @@ class BaryonSuppression(Theory):
                 # 6. Apply calibration masking: suppress effect outside calibration ranges
                 # For k < 8.73e-3 h/Mpc, set suppression to 1 (outside calib; Kunhao's choice)
                 # For k > pyspk's max k, use boundary value (no extrapolation needed now)
-                sup_interp[self.requested_k < self.k_min_calib] = 1.0
+                # JVR NOTE: also keep the units in mind here
+                sup_interp[self.requested_k < h*self.k_min_calib] = 1.0
 
                 # Defensive check: verify interpolated suppression is physically reasonable
                 if not np.all(np.isfinite(sup_interp)):
@@ -389,7 +419,7 @@ class BaryonSuppression(Theory):
                 # (e.g., S < 0 or S > 2, which would indicate serious problems)
                 # Values > 1.0 at high k are expected from interpolation; values slightly > 1
                 # indicate numerical precision or model behavior at calibration boundaries
-                n_unphysical_low = np.sum(sup_interp < 0.0)
+                n_unphysical_low  = np.sum(sup_interp < 0.0)
                 n_unphysical_high = np.sum(sup_interp > 2.0)
 
                 if n_unphysical_low > 0 or n_unphysical_high > 0:
@@ -436,6 +466,8 @@ class BaryonSuppression(Theory):
             delta_bcemu = params_values_dict.get("delta_bcemu", 7.0)
             eta_bcemu = params_values_dict.get("eta_bcemu", 2.0)
             deta_bcemu = params_values_dict.get("deta_bcemu", 2.0)
+            H0 = self.provider.get_param("H0")
+            h = H0/100
 
             self.log.debug(
                 "BCEmu baryon suppression: log10Mc=%.4f, mu=%.4f, thej=%.4f, gamma=%.4f, delta=%.4f, eta=%.4f, deta=%.4f",
@@ -537,7 +569,8 @@ class BaryonSuppression(Theory):
                         bounds_error=False,
                         assume_sorted=True,
                     )
-                    sup_interp = np.exp(interp_bcemu(np.log10(self.requested_k)))
+                    # JVR NOTE: self.requested_k is in 1/Mpc but BCEmu assumes h/Mpc units so here we must convert requested_k to h/Mpc
+                    sup_interp = np.exp(interp_bcemu(np.log10(self.requested_k) - np.log10(h)))
 
                     suppression_dict[z_val] = sup_interp
 
@@ -562,6 +595,8 @@ class BaryonSuppression(Theory):
                 str(e),
             )
             return self._unity_suppression()
+
+        return suppression_dict
 
     def _calculate_flamingo(self, params_values_dict):
         try:
@@ -588,14 +623,14 @@ class BaryonSuppression(Theory):
                     f"Flamingo parameter mstar_sigma_flamingo={mstar_sigma_flamingo:.4f} outside valid range "
                     f"[{self.mstar_sigma_min:.4f}, {self.mstar_sigma_max:.4f}]",
                 )
-            if not (self.jet_frac_min < jet_frac_flamingo < self.jet_frac_max):
+            if not (self.jet_frac_min <= jet_frac_flamingo <= self.jet_frac_max):
                 raise LoggedError(
                     self.log,
-                    f"Flamingo parameter jet_frac_flamingo={jet_frac_flamingo:.4f} outside valid range "
-                    f"[{self.jet_frac_min:.4f}, {self.jet_frac_max:.4f}]",
+                    f"Flamingo parameter jet_frac_flamingo={jet_frac_flamingo} outside valid range "
+                    f"[{self.jet_frac_min:.4e}, {self.jet_frac_max:.4e}]",
                 )
 
-            myemu = fre.FalmingoBaryonResponseEmulator()
+            myemu = fre.FlamingoBaryonResponseEmulator()
             logkmin_flamingo = -1.5
             logkmax_flamingo = 1.5
             suppression_dict = {}
@@ -632,7 +667,11 @@ class BaryonSuppression(Theory):
                         bounds_error=False,
                         assume_sorted=True,
                     )
-                    sup_interp = np.exp(interp_flamingo(np.log10(self.requested_k)))
+                    
+                    # JVR NOTE: self.requested_k is in 1/Mpc but SP(k) assumes h/Mpc units so here we must convert requested_k to h/Mpc
+                    H0 = self.provider.get_param("H0")
+                    h = H0/100
+                    sup_interp = np.exp(interp_flamingo(np.log10(self.requested_k) - np.log10(h)))
 
                     suppression_dict[z_val] = sup_interp
 
@@ -656,6 +695,8 @@ class BaryonSuppression(Theory):
                 str(e),
             )
             return self._unity_suppression()
+
+        return suppression_dict
 
     def _unity_suppression(self):
         """
