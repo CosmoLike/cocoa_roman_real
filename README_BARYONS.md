@@ -9,10 +9,16 @@ See the corresponding papers for more details on the parameterizations.
 
 ## Setup
 
-First, navigate to the Cocoa projects folder and clone the repository as `roman_real`:
+First, navigate to the `Cocoa/projects/` folder and clone the repository as `roman_real`:
 
 ```
     git clone https://github.com/nihardalal/cocoa_roman_real_baryons.git roman_real
+```
+
+Go back to the `Cocoa/` folder, activate the Cocoa environments (NOTE: you must do `source start_cocoa.sh` AFTER cloning) and install the Cosmolike interface as usual with the command:
+
+```
+    source projects/roman_real/installation_scripts/compile_roman_real.sh
 ```
 
 You'll also need to install [SP(k)](https://github.com/jemme07/pyspk), [BCEmu](https://github.com/sambit-giri/BCemu) and [FlamingoBaryonResponseEmulator](https://github.com/FLAMINGOSIM/FlamingoBaryonResponseEmulator) in your `.local` environment (i.e. after `source start_cocoa.sh`). BCEmu further needs `smt==1.0.0` -- other versions are incompatible with the emulator and may break the environment. You can do this with:
