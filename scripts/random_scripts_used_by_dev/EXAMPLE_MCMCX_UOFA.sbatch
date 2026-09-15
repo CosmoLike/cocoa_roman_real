@@ -31,14 +31,18 @@ if [ -z "${ROOTDIR}" ]; then
 fi
 
 export OMP_PROC_BIND=close
-export OMP_PROC_BIND=close
+export OMP_PLACES=cores
 if [ -n "$SLURM_CPUS_PER_TASK" ]; then
   export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 else
   export OMP_NUM_THREADS=1
 fi
+export OMP_DYNAMIC=FALSE
+export OPENBLAS_NUM_THREADS=1 
+export MKL_NUM_THREADS=1
 
-"${CONDA_PREFIX}"/bin/mpirun -n ${SLURM_NTASKS} --oversubscribe --mca pml ^ucx \
-  --mca btl vader,tcp,self --bind-to core:overload-allowed --rank-by slot \
-  --map-by slot:pe=${OMP_NUM_THREADS} cobaya-run \
-  ./projects/roman_real/EXAMPLE_MCMC${SLURM_ARRAY_TASK_ID}.yaml -r
+"${CONDA_PREFIX}"/bin/mpirun -n ${SLURM_NTASKS} --oversubscribe \
+  --mca pml ob1 --mca btl vader,tcp,self \
+  --bind-to core:overload-allowed --report-bindings \
+  --rank-by slot --map-by numa:pe=${OMP_NUM_THREADS} \
+  cobaya-run ./projects/roman_real/EXAMPLE_MCMC${SLURM_ARRAY_TASK_ID}.yaml -r

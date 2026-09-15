@@ -36,11 +36,15 @@ else
 fi
 
 export OMP_PROC_BIND=close
+export OMP_PLACES=cores
 if [ -n "$SLURM_CPUS_PER_TASK" ]; then
   export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 else
   export OMP_NUM_THREADS=1
 fi
+export OMP_DYNAMIC=FALSE
+export OPENBLAS_NUM_THREADS=1 
+export MKL_NUM_THREADS=1
 
 # ---------------------------------------------------------------------------
 # index j = int(SLURM_ARRAY_TASK_ID / 3)
@@ -71,11 +75,13 @@ declare -i j=$(( AID % NY ))
 
 export rootprog="external_modules/code/emulators/emultrf/emultraining"
 
-"${CONDA_PREFIX}"/bin/mpirun -n ${SLURM_NTASKS} \
-   -x PATH -x LD_LIBRARY_PATH -x CONDA_PREFIX -x ROOTDIR -x OMP_NUM_THREADS \
-  --oversubscribe --mca pml ^ucx \
-  --mca btl tcp,self --bind-to core:overload-allowed --rank-by slot \
-  --map-by slot:pe=${OMP_NUM_THREADS} \
+"${CONDA_PREFIX}"/bin/mpirun -n ${SLURM_NTASKS} --oversubscribe \
+  -x PATH -x LD_LIBRARY_PATH -x PYTHONPATH -x CONDA_PREFIX -x ROOTDIR -x OMP_NUM_THREADS \
+  -x OMP_PROC_BIND -x OMP_PLACES -x OMP_DYNAMIC -x CLIK_PLUGIN --mca mpi_yield_when_idle 1 \
+  -x OPENBLAS_NUM_THREADS -x MKL_NUM_THREADS -x CLIK_PATH -x CLIK_DATA \
+  --mca pml ob1 --mca btl vader,tcp,self --bind-to core:overload-allowed \
+  --mca btl_tcp_if_exclude lo,docker0,virbr0,ib0 --report-bindings \
+  --rank-by slot --map-by slot:pe=${OMP_NUM_THREADS} \
   ${ROOTDIR}/.local/bin/python ${rootprog}/dataset_generator_lensing.py \
     --root projects/roman_real/  \
     --fileroot "${fileroot[$i]}" \
