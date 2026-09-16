@@ -5,6 +5,7 @@
 *.pyo
 *.cfg
 chains/
+chains2/
 .ipynb_checkpoints/
 .ipynb_*
 *.sbatch
@@ -15,4 +16,6 @@ interface/.DS_Store
 .DS_Store
 likelihood/.DS_Store
 scripts/.DS_Store
+chains2/
+chains*/
 data/.DS_Store

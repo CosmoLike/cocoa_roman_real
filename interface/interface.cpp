@@ -1,3 +1,6 @@
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 #include <string>
 #include <vector>
 #include <numeric>
@@ -38,6 +41,7 @@ namespace py = pybind11;
 #include <armadillo>
 #include "cosmolike/generic_interface.hpp"
 #include "cosmolike/cosmo2D_wrapper.hpp"
+#include "cosmolike/cosmo2D_scuts_wrapper.hpp"
 
 PYBIND11_MODULE(cosmolike_roman_real_interface, m)
 {
@@ -51,7 +55,7 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
       "Init accuracy and sampling Boost (may slow down Cosmolike a lot)",
       (py::arg("lmax") = 75000).none(false)
     );
-  
+
   m.def("init_accuracy_boost",
       &cosmolike_interface::init_accuracy_boost,
       "Init accuracy and sampling Boost (may slow down Cosmolike a lot)",
@@ -106,10 +110,11 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
     );
 
   m.def("init_IA",
-      &cosmolike_interface::init_IA,
+      &cosmolike_interface::init_IA_fastpt,
       "Init IA related options",
       py::arg("ia_model").none(false).noconvert(),
-      py::arg("ia_redshift_evolution").none(false).noconvert()
+      py::arg("ia_redshift_evolution").none(false).noconvert(),
+      py::arg("ia_code").none(false).noconvert()
     );
 
   m.def("init_probes",
@@ -149,6 +154,27 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
     py::arg("source_ntomo").none(false).noconvert(),
     py::return_value_policy::move
   );
+  
+  m.def("set_IA_PS",
+      &cosmolike_interface::set_IA_PS,
+      "Set FPTIA if FASTPT is called",
+      py::arg("PS").none(false),
+      py::arg("kmin").none(false),
+      py::arg("kmax").none(false),
+      py::arg("cutoff").none(false),
+      py::arg("N").none(false)
+    );
+
+  m.def("set_bias_PS",
+      &cosmolike_interface::set_bias_PS,
+      "Set FPTbias if FASTPT is called",
+      py::arg("PS").none(false),
+      py::arg("kmin").none(false),
+      py::arg("kmax").none(false),
+      py::arg("cutoff").none(false),
+      py::arg("sigma4").none(false),
+      py::arg("N").none(false)
+    );
 
   m.def("init_lens_sample_size",
       &cosmolike_interface::set_lens_sample_size,
@@ -170,6 +196,19 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
   // --------------------------------------------------------------------
   // SET FUNCTIONS
   // --------------------------------------------------------------------
+  m.def("set_omp_threads",
+    [](int n) {
+#ifdef _OPENMP
+      if (n > 0) { omp_set_num_threads(n); }
+#else
+      (void) n;
+#endif
+    },
+    pybind11::arg("n"),
+    "Set the OpenMP thread count for cosmolike's internal parallel regions. "
+    "Must be called before any compute_* function if you've set because some "
+    "Python libraries silently call omp_set_num_threads(1)");
+
   m.def("set_distances",
       [](arma::Col<double> z, 
          arma::Col<double> chi)
@@ -238,11 +277,14 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
     );
 
   m.def("set_nuisance_bias",
-      &cosmolike_interface::set_nuisance_bias,
+      &cosmolike_interface::set_nuisance_bias_fastpt,
       "Set nuisance Bias Parameters",
       py::arg("B1").none(false),
       py::arg("B2").none(false),
-      py::arg("B_MAG").none(false)
+      py::arg("B_MAG").none(false),
+      py::arg("B3nl").none(false),
+      py::arg("BK").none(false),
+      py::return_value_policy::move
     );
 
   m.def("set_nuisance_shear_calib",
@@ -251,7 +293,7 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
       py::arg("M").none(false),
       py::return_value_policy::move
     );
-  
+
   m.def("set_nuisance_shear_photoz",
       &cosmolike_interface::set_nuisance_shear_photoz,
       "Set nuisance shear photo-z bias amplitudes",
@@ -405,7 +447,7 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
       [](std::string scenarios, std::string allsims) {
         using namespace cosmolike_interface;
         BaryonScenario::get_instance().set_scenarios(allsims, scenarios);
-        return compute_baryon_pcas_Mx2pt_N<0,3>({0,1,2});
+        return compute_baryon_pcas_Mx2pt_N<0,3>({0, 1, 2});
       },
       "Compute baryonic principal components given a list of scenarios" 
       "that contaminate the matter power spectrum",
@@ -466,8 +508,7 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
 
   m.def("C_ss_tomo_limber",
       py::overload_cast<arma::Col<double>>(
-        &cosmolike_interface::C_ss_tomo_limber_cpp
-      ),
+        &cosmolike_interface::C_ss_tomo_limber_cpp),
       "Compute shear-shear (fourier - limber) data vector at all tomographic"
       " bins and many ell (vectorized)",
       py::arg("l").none(false),
@@ -476,20 +517,18 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
 
   m.def("int_for_C_ss_tomo_limber",
       py::overload_cast<const double, const double, const int, const int>(
-        &cosmolike_interface::int_for_C_ss_tomo_limber_cpp
-      ),
+        &cosmolike_interface::int_for_C_ss_tomo_limber_cpp),
       "Compute integrand for shear-shear (fourier - limber) data vector"
       " at a single tomographic bin and ell value",
       py::arg("a").none(false).noconvert(),
       py::arg("l").none(false).noconvert(),
       py::arg("ni").none(false).noconvert(),
-      py::arg("ni").none(false).noconvert()
+      py::arg("nj").none(false).noconvert()
     );
 
   m.def("int_for_C_ss_tomo_limber",
       py::overload_cast<arma::Col<double>, arma::Col<double>>(
-        &cosmolike_interface::int_for_C_ss_tomo_limber_cpp
-      ),
+        &cosmolike_interface::int_for_C_ss_tomo_limber_cpp),
       "Compute integrand shear-shear (fourier - limber) data vector at all" 
       " tomographic bins and many scale factor and ell (vectorized)",
       py::arg("a").none(false),
@@ -499,8 +538,7 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
 
   m.def("C_gs_tomo_limber",
       py::overload_cast<const double, const int, const int>(
-        &cosmolike_interface::C_gs_tomo_limber_cpp
-      ),
+        &cosmolike_interface::C_gs_tomo_limber_cpp),
       "Compute shear-position (fourier - limber) data vector at a single"
       " tomographic bin and ell value",
       py::arg("l").none(false).noconvert(),
@@ -510,8 +548,7 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
 
   m.def("C_gs_tomo_limber",
       py::overload_cast<arma::Col<double>>(
-        &cosmolike_interface::C_gs_tomo_limber_cpp
-      ),
+        &cosmolike_interface::C_gs_tomo_limber_cpp),
       "Compute shear-position (fourier - limber) data vector at all tomographic"
       " bins and many ell (vectorized)",
       py::arg("l").none(false),
@@ -520,8 +557,7 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
 
   m.def("int_for_C_gs_tomo_limber",
       py::overload_cast<const double, const double, const int, const int>(
-        &cosmolike_interface::int_for_C_gs_tomo_limber_cpp
-      ),
+        &cosmolike_interface::int_for_C_gs_tomo_limber_cpp),
       "Compute integrand for shear-position (fourier - limber) data vector"
       " at a single tomographic bin and ell value",
       py::arg("a").none(false).noconvert(),
@@ -532,8 +568,7 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
 
   m.def("int_for_C_gs_tomo_limber",
       py::overload_cast<arma::Col<double>, arma::Col<double>>(
-        &cosmolike_interface::int_for_C_gs_tomo_limber_cpp
-      ),
+        &cosmolike_interface::int_for_C_gs_tomo_limber_cpp),
       "Compute integrand shear-shear (fourier - limber) data vector at all" 
       " tomographic bins and many scale factor and ell (vectorized)",
       py::arg("a").none(false),
@@ -543,8 +578,7 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
 
   m.def("C_gg_tomo_limber",
       py::overload_cast<arma::Col<double>>(
-        &cosmolike_interface::C_gg_tomo_limber_cpp
-      ),
+        &cosmolike_interface::C_gg_tomo_limber_cpp),
       "Compute position-position (fourier - limber) data vector"
       " at all tomographic bins and many ell (vectorized)",
       py::arg("l").none(false),
@@ -552,9 +586,7 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
     );
 
   m.def("C_gg_tomo",
-      py::overload_cast<arma::Col<double>>(
-        &cosmolike_interface::C_gg_tomo_cpp
-      ),
+      py::overload_cast<arma::Col<double>>(&cosmolike_interface::C_gg_tomo_cpp),
       "Compute position-position (fourier - non-limber/limber) data vector"
       " at all tomographic bins and many ell (vectorized)",
       py::arg("l").none(false),
@@ -562,9 +594,95 @@ PYBIND11_MODULE(cosmolike_roman_real_interface, m)
     );
 
   // --------------------------------------------------------------------
+  // Derivative
+  // --------------------------------------------------------------------
+
+  m.def("dlnC_ss_dlnk_tomo_limber",
+      py::overload_cast<const double, const double, const int, const int>(
+        &cosmolike_interface::dlnC_ss_dlnk_tomo_limber_cpp
+      ),
+      "Compute dlnC_ss_dlnk (fourier - limber) derivative of the data vector",
+      py::arg("k").none(false).noconvert(),
+      py::arg("l").none(false).noconvert(),
+      py::arg("ni").none(false).noconvert(),
+      py::arg("nj").none(false).noconvert(),
+      py::return_value_policy::move
+    );
+
+  m.def("dlnC_ss_dlnk_tomo_limber",
+      py::overload_cast<const arma::Col<double>, const arma::Col<double>>(
+        &cosmolike_interface::dlnC_ss_dlnk_tomo_limber_cpp
+      ),
+      "Compute dlnC_ss_dlnk (fourier - limber) derivative of the data vector",
+      py::arg("k").none(false),
+      py::arg("l").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("rf_C_ss_tomo_limber",
+      py::overload_cast<const double, const double, const int, const int>(
+        &cosmolike_interface::RF_C_ss_tomo_limber_cpp
+      ),
+      "Compute int from -infty to k of |dlnC_ss_dlnk| (fourier - limber)",
+      py::arg("k").none(false).noconvert(),
+      py::arg("l").none(false).noconvert(),
+      py::arg("ni").none(false).noconvert(),
+      py::arg("nj").none(false).noconvert(),
+      py::return_value_policy::move
+    );
+
+  m.def("rf_C_ss_tomo_limber",
+      py::overload_cast<const arma::Col<double>, const arma::Col<double>>(
+        &cosmolike_interface::RF_C_ss_tomo_limber_cpp
+      ),
+      "Compute int from -infty to k of |dlnC_ss_dlnk| (fourier - limber)",
+      py::arg("k").none(false),
+      py::arg("l").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("dlnxi_dlnk_pm_tomo_limber",
+      py::overload_cast<const double>(
+        &cosmolike_interface::dlnxi_dlnk_pm_tomo_limber_cpp
+      ),
+      "Compute dlnxi_dlnk (real - limber) derivative of the data vector",
+      py::arg("k").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("dlnxi_dlnk_pm_tomo_limber",
+      py::overload_cast<const arma::Col<double>>(
+        &cosmolike_interface::dlnxi_dlnk_pm_tomo_limber_cpp
+      ),
+      "Compute dlnxi_dlnk (real - limber) derivative of the data vector",
+      py::arg("k").none(false),
+      py::return_value_policy::move
+    );
+
+  m.def("rf_xi_tomo_limber",
+      py::overload_cast<const double, const int, const int, const int>(
+        &cosmolike_interface::RF_xi_tomo_limber_cpp
+      ),
+      "Compute int from -infty to k of |dlnxi_dlnk| (fourier - limber)",
+      py::arg("k").none(false),
+      py::arg("nt").none(false).noconvert(),
+      py::arg("ni").none(false).noconvert(),
+      py::arg("nj").none(false).noconvert(),
+      py::return_value_policy::move
+    );
+  
+  m.def("rf_xi_tomo_limber",
+      py::overload_cast<const arma::Col<double>>(
+        &cosmolike_interface::RF_xi_tomo_limber_cpp
+      ),
+      "Compute int from -infty to k of |dlnxi_dlnk| (fourier - limber)",
+      py::arg("k").none(false),
+      py::return_value_policy::move
+    );
+
+  // --------------------------------------------------------------------
   // Miscellaneous
   // --------------------------------------------------------------------
-  
   m.def("get_mask",
       // Why return an STL vector?
       // The conversion between STL vector and python np array is cleaner
