@@ -4,6 +4,7 @@ This repository implements external baryonic feedback suppresion models as a `Co
 - SP(k), Salcido et al 2023 https://arxiv.org/abs/2305.09710
 - BCEmu, Giri & Schneider 2021 https://arxiv.org/abs/2108.08863
 - FlamingoBaryonResponseEmulator, Schaller et al 2024 https://arxiv.org/abs/2410.17109
+- BACCOemu, Burger et al 2025 https://arxiv.org/abs/2506.18974
 
 See the corresponding papers for more details on the parameterizations.
 
@@ -21,15 +22,15 @@ Go back to the `Cocoa/` folder, activate the Cocoa environments (NOTE: you must 
     source projects/roman_real/installation_scripts/compile_roman_real.sh
 ```
 
-You'll also need to install [SP(k)](https://github.com/jemme07/pyspk), [BCEmu](https://github.com/sambit-giri/BCemu) and [FlamingoBaryonResponseEmulator](https://github.com/FLAMINGOSIM/FlamingoBaryonResponseEmulator) in your `.local` environment (i.e. after `source start_cocoa.sh`). BCEmu further needs `smt==1.0.0` -- other versions are incompatible with the emulator and may break the environment. You can do this with:
+You'll also need to install [SP(k)](https://github.com/jemme07/pyspk), [BCEmu](https://github.com/sambit-giri/BCemu), [FlamingoBaryonResponseEmulator](https://github.com/FLAMINGOSIM/FlamingoBaryonResponseEmulator), and [BACCOemu](https://bitbucket.org/rangulo/baccoemu/src/master/) in your `.local` environment (i.e. after `source start_cocoa.sh`). BCEmu further needs `smt==1.0.0` -- other versions are incompatible with the emulator and may break the environment. You can install all codes with:
 
 ```
-    pip install pyspk BCemu smt==1.0.0 FlamingoBaryonResponseEmulator
+    pip install pyspk BCemu smt==1.0.0 FlamingoBaryonResponseEmulator baccoemu
 ```
 
 ## Examples
 
-The yaml files `EXAMPLE_SPK.yaml`, `EXAMPLE_BCEMU.yaml`, `EXAMPLE_FLAMINGO.yaml`, and `EXAMPLE_DMO.yaml` compute the model vector for the same cosmology but different baryon suppression modelling. The user should be able to run all 4 yaml files with `cobaya-run projects/roman-real/EXAMPLE_<CASE>.yaml`, where `<CASE>` is one of the four cases above. Each run saves the corresponding model vector as `<CASE>.modelvector`.
+The yaml files `EXAMPLE_SPK.yaml`, `EXAMPLE_BCEMU.yaml`, `EXAMPLE_FLAMINGO.yaml`, `EXAMPLE_BACCOEMU.yaml`, and `EXAMPLE_DMO.yaml` compute the model vector for the same cosmology but different baryon suppression modelling. The user should be able to run all 4 yaml files with `cobaya-run projects/roman-real/EXAMPLE_<CASE>.yaml`, where `<CASE>` is one of the four cases above. Each run saves the corresponding model vector as `<CASE>.modelvector`.
 
 After running all four files, the notebook `plot_dvs.ipynb` plots the resulting data vectors from each example, showing the effect of baryonic feedback suppresion at data vector level.
 

@@ -736,15 +736,6 @@ class BaryonSuppression(Theory):
         except (KeyError, AttributeError):
             wa = 0
         
-        print("-----------")
-        print(f"A_s = {A_s}")
-        print(f"omegab = {omegab}")
-        print(f"omegacb = {omegacb}")
-        print(f"mnu = {mnu}")
-        print(f"w0 = {w0}")
-        print(f"wa = {wa}")
-        print("-----------")
-        
         common_params = {
             'omega_cold'    :  omegacb,
             'A_s'           :  A_s,
