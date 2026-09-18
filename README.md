@@ -91,7 +91,7 @@ and
   - macOS (arm)
     
         export OMP_NUM_THREADS=8; export OMP_PROC_BIND=disabled; \
-        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE;
+        export OMP_PLACES=cores; export OMP_DYNAMIC=FALSE; \
         export OPENBLAS_NUM_THREADS=1; export MKL_NUM_THREADS=1
 
  **Step :three:**: The folder `projects/roman_real` contains examples. So, run the `cobaya-run` on the first example following the commands below.
