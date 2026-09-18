@@ -24,7 +24,7 @@ likelihood:
     create_baryon_pca: false
     baryon_pca_select_sims: "antilles-2-99/antilles-101-378/antilles-380-400"
     filename_baryon_pca: "./projects/lsst_y1/chains/pca.txt"
-    external_baryon_suppression: True
+    external_baryon_suppression: False
 
 params:
   As_1e9:
@@ -445,76 +445,76 @@ params:
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
-  log10Mc_bcemu:
-    prior:
-      min: 11
-      max: 15
-    ref:
-      dist: norm
-      loc: 13.32
-      scale: 0.4
-    proposal: 0.4
-    latex: \log_{10}(M_c)
-  mu_bcemu:
-    prior:
-      min: 0
-      max: 2
-    ref:
-      dist: norm
-      loc: 0.93
-      scale: 0.2
-    proposal: 0.2
-    latex: \mu
-  thej_bcemu:
-    prior:
-      min: 2
-      max: 8
-    ref:
-      dist: norm
-      loc: 4.235
-      scale: 0.5
-    proposal: 0.5
-    latex: \theta_\mathrm{ej}
-  gamma_bcemu:
-    prior:
-      min: 1
-      max: 4
-    ref:
-      dist: norm
-      loc: 2.25
-      scale: 0.4
-    proposal: 0.4
-    latex: \gamma
-  delta_bcemu:
-    prior:
-      min: 3.0
-      max: 11.0
-    ref:
-      dist: norm
-      loc: 6.40
-      scale: 0.3
-    proposal: 0.3
-    latex: \delta
-  eta_bcemu:
-    prior:
-      min: 0.05
-      max: 4.0
-    ref:
-      dist: norm
-      loc: 0.15
-      scale: 0.03
-    proposal: 0.03
-    latex: \eta
-  deta_bcemu:
-    prior:
-      min: 0.05
-      max: 4.0
-    ref:
-      dist: norm
-      loc: 0.14
-      scale: 0.04
-    proposal: 0.04
-    latex: \eta_\delta
+  # log10Mc_bcemu:
+  #   prior:
+  #     min: 11
+  #     max: 15
+  #   ref:
+  #     dist: norm
+  #     loc: 13.32
+  #     scale: 0.4
+  #   proposal: 0.4
+  #   latex: \log_{10}(M_c)
+  # mu_bcemu:
+  #   prior:
+  #     min: 0
+  #     max: 2
+  #   ref:
+  #     dist: norm
+  #     loc: 0.93
+  #     scale: 0.2
+  #   proposal: 0.2
+  #   latex: \mu
+  # thej_bcemu:
+  #   prior:
+  #     min: 2
+  #     max: 8
+  #   ref:
+  #     dist: norm
+  #     loc: 4.235
+  #     scale: 0.5
+  #   proposal: 0.5
+  #   latex: \theta_\mathrm{ej}
+  # gamma_bcemu:
+  #   prior:
+  #     min: 1
+  #     max: 4
+  #   ref:
+  #     dist: norm
+  #     loc: 2.25
+  #     scale: 0.4
+  #   proposal: 0.4
+  #   latex: \gamma
+  # delta_bcemu:
+  #   prior:
+  #     min: 3.0
+  #     max: 11.0
+  #   ref:
+  #     dist: norm
+  #     loc: 6.40
+  #     scale: 0.3
+  #   proposal: 0.3
+  #   latex: \delta
+  # eta_bcemu:
+  #   prior:
+  #     min: 0.05
+  #     max: 4.0
+  #   ref:
+  #     dist: norm
+  #     loc: 0.15
+  #     scale: 0.03
+  #   proposal: 0.03
+  #   latex: \eta
+  # deta_bcemu:
+  #   prior:
+  #     min: 0.05
+  #     max: 4.0
+  #   ref:
+  #     dist: norm
+  #     loc: 0.14
+  #     scale: 0.04
+  #   proposal: 0.04
+  #   latex: \eta_\delta
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
 # ------------------------------------------------------------------------
@@ -707,12 +707,12 @@ theory:
 #      accuracyboost: 10
 #      kmax_boltzmann: 7.5
 #      extrap_kmax: 250.0
-  bfmt:
-    baryon_model: 2 # 1 = SP(k), 2 = BCEmu, 3 = FlamingoEmulator, 4 = BACCOemu, 5 = BCemu2025
-    nz: 20  # internal (z, k) computation grid; the result is 2D-splined
-    nk: 100 # onto the grid the likelihood requests
-    above_zmax: unity # S(k,z) above the model range: unity (default) or constant
-    q2_bcemu25: 0.70 # BCemu2025 only: q2 coordinate (native grid: 0.5, 0.7, 1.0)
+  # bfmt:
+  #   baryon_model: 2 # 1 = SP(k), 2 = BCEmu, 3 = FlamingoEmulator, 4 = BACCOemu, 5 = BCemu2025
+  #   nz: 20  # internal (z, k) computation grid; the result is 2D-splined
+  #   nk: 100 # onto the grid the likelihood requests
+  #   above_zmax: unity # S(k,z) above the model range: unity (default) or constant
+  #   q2_bcemu25: 0.70 # BCemu2025 only: q2 coordinate (native grid: 0.5, 0.7, 1.0)
 
 sampler:
   evaluate:
@@ -755,13 +755,13 @@ sampler:
       # beta_spk: 1.273
       # gamma_spk: 0.298
       # ---- BCE EMULATOR PARAMS -----
-      log10Mc_bcemu: 13.32
-      mu_bcemu: 0.93
-      thej_bcemu: 4.235
-      gamma_bcemu: 2.25
-      delta_bcemu: 6.40
-      eta_bcemu: 0.15
-      deta_bcemu: 0.14
+      # log10Mc_bcemu: 13.32
+      # mu_bcemu: 0.93
+      # thej_bcemu: 4.235
+      # gamma_bcemu: 2.25
+      # delta_bcemu: 6.40
+      # eta_bcemu: 0.15
+      # deta_bcemu: 0.14
       # ----  FLAMINGO PARAMS -----
       # fgas_sigma_flamingo: 0.0
       # mstar_sigma_flamingo: 0.0
@@ -772,7 +772,6 @@ sampler:
       # beta_baccoemu: -0.22
       # M1_z0_cen_baccoemu: 10.5
       # theta_inn_baccoemu: -0.86
-
       # Theta_co_bcemu25: 0.3
       # log10Mc_bcemu25: 13.1
       # mu_bcemu25: 1.0
