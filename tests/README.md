@@ -60,8 +60,9 @@ Test 15 exists because a changed interface binding (init_IA growing
 `ia_code`) or a grid rejected by the C layer breaks every notebook
 while the yaml pipeline keeps passing.
 
-Accuracy checks (`test_accuracy.py`): first a one-knob-at-a-time scan
-on the 3x2pt NLA configuration (each knob's $\chi^2$ and delta print
+### Accuracy checks (`test_accuracy.py`, A1-A6)
+
+First a one-knob-at-a-time scan on the 3x2pt NLA configuration (each knob's $\chi^2$ and delta print
 as `KNOB` lines; the scan also stresses `accuracyboost: 5` on its
 own), then A1-A6: the three probes with both IA models re-evaluated
 with every setting raised at once:
@@ -83,12 +84,14 @@ the file on its own, or skip it with
 
     python -m pytest ./projects/roman_real/tests --ignore ./projects/roman_real/tests/test_accuracy.py
 
+### Synthetic data vectors
+
 All TATT variants evaluate against `frozen/data/tatt_roman_real.dataset`,
 a data vector generated with TATT at the fiducial point during the
 freeze: at its own minimum the TATT $\chi^2$ responds quadratically to
 numerical changes instead of linearly on the side of a hill.
 
-## Why the tests keep their own copy of everything
+## Tests keep their own copy of configurations and data
 
 The tests read nothing from the live project: not `../data`, not the
 `EXAMPLE_EVALUATE` yaml files, and not the likelihood default yaml
