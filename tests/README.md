@@ -49,6 +49,14 @@ so run the command with nothing piped after it.
 9. -14. `test_example2_2x2pt.py` (numbered 11-14): the four standard
    tests on `roman_real.combo_2x2pt` (example2 with the probe selection
    reduced to galaxy clustering plus galaxy-galaxy lensing).
+15. `test_notebook_interface.py`: rebuilds EXAMPLE_EVALUATE1.ipynb's
+   direct call sequence (its own CAMB run, `set_cosmology`,
+   `compute_data_vector_masked`, no cobaya) against the frozen
+   example1 dataset and point; the chi2 must stay within 0.2 of the
+   frozen cobaya reference. A changed interface binding (init_IA
+   growing `ia_code`) or a grid rejected by the C layer breaks every
+   notebook while the yaml pipeline keeps passing, which is what this
+   test catches.
 
 Accuracy checks (`test_accuracy.py`): first a one-knob-at-a-time scan
 on the 3x2pt NLA configuration (each knob's chi2 and delta print as

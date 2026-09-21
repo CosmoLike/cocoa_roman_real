@@ -630,12 +630,16 @@ The repository `emulators_code` provides the script `dataset_generator_lensing.p
 
 ## Unit tests
 
-The `tests/` folder holds 12 pass/fail tests and an advisory accuracy
+The `tests/` folder holds 13 pass/fail tests and an advisory accuracy
 file. The pass/fail tests compare the chi2 of cosmic shear, 3x2pt,
 and 2x2pt (each in NLA and TATT) against frozen references within
 0.2, and re-evaluate each fiducial point as the 10th of 10 cosmologies
 in a row under `OMP_NUM_THREADS=4` to catch state leaks and OpenMP
-races. Everything they evaluate is frozen: fully expanded
+races. One further test rebuilds the notebook-style direct interface
+call sequence (EXAMPLE_EVALUATE1.ipynb: its own CAMB run,
+`set_cosmology`, `compute_data_vector_masked`, no cobaya) and checks
+it against the same frozen reference, catching interface changes that
+break the notebooks while the yaml pipeline keeps passing. Everything they evaluate is frozen: fully expanded
 configurations, a private copy of the data, and the TATT and reference
 points, all pinned by a SHA-256 manifest, and every model build runs
 in its own worker subprocess. From the `Cocoa/` folder, with the cocoa
