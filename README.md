@@ -632,14 +632,14 @@ The repository `emulators_code` provides the script `dataset_generator_lensing.p
 
 The `tests/` folder holds 13 pass/fail tests and an advisory accuracy
 file. The pass/fail tests compare the $\chi^2$ of cosmic shear, 3x2pt,
-and 2x2pt (each in NLA and TATT) against frozen references within
+and 2x2pt (each in NLA and TATT) against stored references within
 0.2, and re-evaluate each fiducial point as the 10th of 10 cosmologies
 in a row under `OMP_NUM_THREADS=4` to catch state leaks and OpenMP
 races. One further test rebuilds the notebook-style direct interface
 call sequence (EXAMPLE_EVALUATE1.ipynb: its own CAMB run,
 `set_cosmology`, `compute_data_vector_masked`, no cobaya) and checks
-it against the same frozen reference, catching interface changes that
-break the notebooks while the yaml pipeline keeps passing. Everything they evaluate is frozen: fully expanded
+it against the same stored reference, catching interface changes that
+break the notebooks while the yaml pipeline keeps passing. Everything they evaluate comes from the tests' own snapshot: fully expanded
 configurations, a private copy of the data, and the TATT and reference
 points, all pinned by a SHA-256 manifest, and every model build runs
 in its own worker subprocess. From the `Cocoa/` folder, with the cocoa
@@ -647,17 +647,16 @@ environment active and `start_cocoa.sh` sourced:
 
     python -m pytest ./projects/roman_real/tests
 
-`tests/README.md` describes every test and how to refresh the frozen
-state.
+`tests/README.md` describes every test and how to refresh the snapshot.
 
 # Minimum accuracy parameters
 
 The accuracy checks (`tests/test_accuracy.py`) measured the $\chi^2$ shift
 from pushing the numerical settings far beyond the example defaults;
-the comfort target is $\lvert\Delta\chi^2\rvert$ below 0.2. One knob at a time on
-the 3x2pt NLA configuration (frozen reference $\chi^2$ 0.107):
+the comfort target is $\lvert\Delta\chi^2\rvert$ below 0.2. Changing one accuracy parameter at a time on
+the 3x2pt NLA configuration (stored reference $\chi^2$ 0.107):
 
-| knob                               | raised to | $\Delta\chi^2$ |
+| setting                            | raised to | $\Delta\chi^2$ |
 |------------------------------------|-----------|-----------:|
 | cosmolike `accuracyboost`          | 3         |     +0.010 |
 | cosmolike `accuracyboost` (stress) | 5         |     +0.012 |
@@ -673,7 +672,7 @@ dyadically (nested nodes; see
 refinement. `kmax_boltzmann` and camb `kmax` are one physical cutoff
 seen from the two sides, so the scan moves them together.
 
-All knobs raised at once (comparing the default `accuracyboost: 1`
+All settings raised at once (comparing the default `accuracyboost: 1`
 against 3, the highest value that stays healthy in every project
 scanned):
 
@@ -686,12 +685,12 @@ scanned):
 | 3x2pt, NLA         |     +0.022 |
 | 3x2pt, TATT        |     +0.017 |
 
-Every delta sits far below 0.2: the default numerical settings are
+Every $\Delta\chi^2$ sits far below 0.2: the default numerical settings are
 adequate for these likelihoods and no change is needed.
 
-When several knobs move the $\chi^2$ in any project, raise cosmolike
+When several settings move the $\chi^2$ in any project, raise cosmolike
 `accuracyboost` first (cheap), then camb `k_per_logint`, and only then
 camb `AccuracyBoost` (expensive at run time, and its apparent
-sensitivity can masquerade as unresolved cheap-knob resolution: in
+sensitivity can masquerade as unresolved cheap-setting resolution: in
 roman_kl an apparent +0.80 from camb `AccuracyBoost` collapsed to
 +0.002 once `k_per_logint` was 50).
