@@ -1,6 +1,6 @@
 # Unit tests for the roman_real likelihoods
 
-These tests catch two kinds of silent breakage: a chi2 that drifted
+These tests catch two kinds of silent breakage: a $\chi^2$ that drifted
 because code or data changed by accident, and a race condition (a bug
 where evaluating several points in a row corrupts a later result
 through leftover internal state or colliding OpenMP threads).
@@ -25,7 +25,7 @@ Without pytest:
 
 The suite changes no project files. Each test streams a progress line
 per model build and per evaluation, then a report block with the
-computed chi2, the stored reference, the difference, and the pass
+computed $\chi^2$, the stored reference, the difference, and the pass
 limit. A full run performs about 50 likelihood evaluations and takes a
 few minutes. The test modules force `OMP_NUM_THREADS=4` internally.
 The suite never waits for a keypress: a space/enter prompt between
@@ -34,41 +34,41 @@ so run the command with nothing piped after it.
 
 ## The tests
 
-The standard configurations get four tests each: a chi2 drift check
+The standard configurations get four tests each: a $\chi^2$ drift check
 and a race check, both in the NLA and in the TATT intrinsic-alignment
 model (TATT: `IA_model: 1` with `roman_A2_1=0.05`, `roman_BTA_1=0.05`,
 `roman_A2_2=-1.51541`).
 
 | check | pass limit                                        | a failure means                    |
 |-------|---------------------------------------------------|------------------------------------|
-| chi2  | within 0.2 of `frozen/reference_chi2.json`        | code or data changed the numbers   |
-| race  | fresh vs 10th of 10 cosmologies in a row, to 1e-4 | leftover state or an OpenMP race   |
+| $\chi^2$  | within 0.2 of `frozen/reference_chi2.json`        | code or data changed the numbers   |
+| race  | fresh vs 10th of 10 cosmologies in a row, to $10^{-4}$ | leftover state or an OpenMP race   |
 
 | tests | file | configuration | checks |
 |-------|------|---------------|--------|
-| 1-4   | `test_example1.py` | cosmic shear (example1) | chi2 + race, NLA and TATT |
-| 5-8   | `test_example2.py` | 3x2pt (example2) | chi2 + race, NLA and TATT |
-| 11-14 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: example2 reduced to galaxy clustering plus galaxy-galaxy lensing) | chi2 + race, NLA and TATT |
-| 15    | `test_notebook_interface.py` | the notebook-style direct interface: EXAMPLE_EVALUATE1.ipynb's call sequence (its own CAMB run, `set_cosmology`, `compute_data_vector_masked`, no cobaya) on the frozen example1 dataset and point | chi2 within 0.2 of the frozen cobaya reference |
+| 1-4   | `test_example1.py` | cosmic shear (example1) | $\chi^2$ + race, NLA and TATT |
+| 5-8   | `test_example2.py` | 3x2pt (example2) | $\chi^2$ + race, NLA and TATT |
+| 11-14 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: example2 reduced to galaxy clustering plus galaxy-galaxy lensing) | $\chi^2$ + race, NLA and TATT |
+| 15    | `test_notebook_interface.py` | the notebook-style direct interface: EXAMPLE_EVALUATE1.ipynb's call sequence (its own CAMB run, `set_cosmology`, `compute_data_vector_masked`, no cobaya) on the frozen example1 dataset and point | $\chi^2$ within 0.2 of the frozen cobaya reference |
 
 Test 15 exists because a changed interface binding (init_IA growing
 `ia_code`) or a grid rejected by the C layer breaks every notebook
 while the yaml pipeline keeps passing.
 
 Accuracy checks (`test_accuracy.py`): first a one-knob-at-a-time scan
-on the 3x2pt NLA configuration (each knob's chi2 and delta print as
+on the 3x2pt NLA configuration (each knob's $\chi^2$ and delta print as
 `KNOB` lines), then A1-A6, the three probes with both IA models
 re-evaluated with every knob raised at once (cosmolike accuracyboost
-2, integration_accuracy 10, lmax 200000, kmax_boltzmann 40; CAMB
-AccuracyBoost 2, k_per_logint 50, kmax 50; the scan also stresses
-accuracyboost 5 on its own). Each check
-reports delta chi2 = chi2(high accuracy) - chi2(default, frozen), no
+2, `integration_accuracy: 10`, `lmax: 200000`, `kmax_boltzmann: 40`; CAMB
+`AccuracyBoost: 2`, `k_per_logint: 50`, `kmax: 50`; the scan also stresses
+`accuracyboost: 5` on its own). Each check
+reports $\Delta\chi^2 = \chi^2(\text{high accuracy}) - \chi^2(\text{default})$, no
 pass/fail. High-accuracy evaluations take minutes; skip the file with
 `--ignore ./projects/roman_real/tests/test_accuracy.py`.
 
 All TATT variants evaluate against `frozen/data/tatt_roman_real.dataset`,
 a data vector generated with TATT at the fiducial point during the
-freeze: at its own minimum the TATT chi2 responds quadratically to
+freeze: at its own minimum the TATT $\chi^2$ responds quadratically to
 numerical changes instead of linearly on the side of a hill.
 
 ## Why the tests keep their own copy of everything
@@ -104,6 +104,6 @@ or likelihood defaults requires a re-freeze:
 
 Run it from the `Cocoa/` folder with the environment set up as above.
 It rebuilds `frozen/` from the current project, prints the four new
-reference chi2 values, and rewrites the manifest. Review the printed
-chi2 values against the old references before committing: they define
+reference $\chi^2$ values, and rewrites the manifest. Review the printed
+$\chi^2$ values against the old references before committing: they define
 what every later test run compares against.

@@ -631,7 +631,7 @@ The repository `emulators_code` provides the script `dataset_generator_lensing.p
 # Unit tests
 
 The `tests/` folder holds 13 pass/fail tests and an advisory accuracy
-file. The pass/fail tests compare the chi2 of cosmic shear, 3x2pt,
+file. The pass/fail tests compare the $\chi^2$ of cosmic shear, 3x2pt,
 and 2x2pt (each in NLA and TATT) against frozen references within
 0.2, and re-evaluate each fiducial point as the 10th of 10 cosmologies
 in a row under `OMP_NUM_THREADS=4` to catch state leaks and OpenMP
@@ -652,12 +652,12 @@ state.
 
 # Minimum accuracy parameters
 
-The accuracy checks (`tests/test_accuracy.py`) measured the chi2 shift
+The accuracy checks (`tests/test_accuracy.py`) measured the $\chi^2$ shift
 from pushing the numerical settings far beyond the example defaults;
-the comfort target is |delta chi2| below 0.2. One knob at a time on
-the 3x2pt NLA configuration (frozen reference chi2 0.107):
+the comfort target is $\lvert\Delta\chi^2\rvert$ below 0.2. One knob at a time on
+the 3x2pt NLA configuration (frozen reference $\chi^2$ 0.107):
 
-| knob                               | raised to | delta chi2 |
+| knob                               | raised to | $\Delta\chi^2$ |
 |------------------------------------|-----------|-----------:|
 | cosmolike `accuracyboost`          | 3         |     +0.010 |
 | cosmolike `accuracyboost` (stress) | 5         |     +0.012 |
@@ -673,11 +673,11 @@ dyadically (nested nodes; see
 refinement. `kmax_boltzmann` and camb `kmax` are one physical cutoff
 seen from the two sides, so the scan moves them together.
 
-All knobs raised at once (comparing the default accuracyboost 1
+All knobs raised at once (comparing the default `accuracyboost: 1`
 against 3, the highest value that stays healthy in every project
 scanned):
 
-| configuration      | delta chi2 |
+| configuration      | $\Delta\chi^2$ |
 |--------------------|-----------:|
 | cosmic shear, NLA  |     +0.007 |
 | cosmic shear, TATT |     -0.003 |
@@ -689,7 +689,7 @@ scanned):
 Every delta sits far below 0.2: the default numerical settings are
 adequate for these likelihoods and no change is needed.
 
-When several knobs move the chi2 in any project, raise cosmolike
+When several knobs move the $\chi^2$ in any project, raise cosmolike
 `accuracyboost` first (cheap), then camb `k_per_logint`, and only then
 camb `AccuracyBoost` (expensive at run time, and its apparent
 sensitivity can masquerade as unresolved cheap-knob resolution: in
