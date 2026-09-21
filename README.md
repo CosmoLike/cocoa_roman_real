@@ -651,46 +651,27 @@ environment active and `start_cocoa.sh` sourced:
 
 # Minimum accuracy parameters
 
-The accuracy checks (`tests/test_accuracy.py`) measured the $\chi^2$ shift
-from pushing the numerical settings far beyond the example defaults;
-the comfort target is $\lvert\Delta\chi^2\rvert$ below 0.2. Changing one accuracy parameter at a time on
-the 3x2pt NLA configuration (stored reference $\chi^2$ 0.107):
+The advisory checks in `tests/test_accuracy.py` measure the
+numerical error of the default accuracy settings: each setting is
+raised one at a time on the 3x2pt configuration, so a large
+$\Delta\chi^2$ can be attributed to the setting causing it, and
+then every setting at once. Each check prints the $\Delta\chi^2$
+between the high-accuracy and the default evaluations. The measured
+values sit far below the 0.2 band the reference tests allow, so the
+shipped defaults are adequate. The values are not quoted here: rerun
+the checks to measure them on the current code, and see
+[tests/README.md](tests/README.md) for each check, the settings
+raised, and what each setting controls.
 
-| setting                            | raised to | $\Delta\chi^2$ |
-|------------------------------------|-----------|-----------:|
-| cosmolike `accuracyboost`          | 3         |     +0.010 |
-| cosmolike `accuracyboost` (stress) | 5         |     +0.012 |
-| cosmolike `integration_accuracy`   | 10        |     -0.001 |
-| cosmolike `lmax`                   | 200000    |     +0.012 |
-| `kmax_boltzmann` + camb `kmax`     | 40 + 50   |     +0.004 |
-| camb `AccuracyBoost`               | 2         |     +0.002 |
-| camb `k_per_logint`                | 50        |     -0.001 |
+`accuracyboost` refines a nested z grid in the power-spectrum
+tables: every coarser grid's nodes are a subset of every finer
+grid's, so a higher boost tightens the same interpolation instead of
+moving the nodes (the construction is commented in
+`likelihood/_cosmolike_prototype_base.py`).
 
-`accuracyboost` refines the z grid of the power-spectrum tables
-dyadically (nested nodes; see
-`likelihood/_cosmolike_prototype_base.py`), so raising it is a true
-refinement. `kmax_boltzmann` and camb `kmax` are one physical cutoff
-seen from the two sides, so the scan moves them together.
-
-All settings raised at once (comparing the default `accuracyboost: 1`
-against 3, the highest value that stays healthy in every project
-scanned):
-
-| configuration      | $\Delta\chi^2$ |
-|--------------------|-----------:|
-| cosmic shear, NLA  |     +0.007 |
-| cosmic shear, TATT |     -0.003 |
-| 2x2pt, NLA         |     +0.019 |
-| 2x2pt, TATT        |     +0.016 |
-| 3x2pt, NLA         |     +0.022 |
-| 3x2pt, TATT        |     +0.017 |
-
-Every $\Delta\chi^2$ sits far below 0.2: the default numerical settings are
-adequate for these likelihoods and no change is needed.
-
-When several settings move the $\chi^2$ in any project, raise cosmolike
-`accuracyboost` first (cheap), then camb `k_per_logint`, and only then
-camb `AccuracyBoost` (expensive at run time, and its apparent
-sensitivity can masquerade as unresolved cheap-setting resolution: in
-roman_kl an apparent +0.80 from camb `AccuracyBoost` collapsed to
-+0.002 once `k_per_logint` was 50).
+When several settings move the $\chi^2$, settle them in cost order:
+raise cosmolike `accuracyboost` first (cheap), then CAMB
+`k_per_logint`, and CAMB `AccuracyBoost` last (expensive at run
+time, and able to masquerade for the cheap settings).
+`kmax_boltzmann` and CAMB `kmax` are one physical cutoff seen from
+two sides; move them together.
