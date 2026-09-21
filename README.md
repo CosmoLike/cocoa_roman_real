@@ -627,3 +627,50 @@ The repository `emulators_code` provides the script `dataset_generator_lensing.p
       - Case 2 (`--loadchk 1` and `--append 0`): the code loads the params.
 
  
+
+## Unit tests
+
+The `tests/` folder holds 12 pass/fail tests and an advisory accuracy
+file. The pass/fail tests compare the chi2 of cosmic shear, 3x2pt,
+and 2x2pt (each in NLA and TATT) against frozen references within
+0.2, and re-evaluate each fiducial point as the 10th of 10 cosmologies
+in a row under `OMP_NUM_THREADS=4` to catch state leaks and OpenMP
+races. Everything they evaluate is frozen: fully expanded
+configurations, a private copy of the data, and the TATT and reference
+points, all pinned by a SHA-256 manifest, and every model build runs
+in its own worker subprocess. From the `Cocoa/` folder, with the cocoa
+environment active and `start_cocoa.sh` sourced:
+
+    python -m pytest ./projects/roman_real/tests
+
+`tests/README.md` describes every test and how to refresh the frozen
+state.
+
+## Minimum accuracy parameters
+
+The accuracy checks (`tests/test_accuracy.py`) measured the chi2 shift
+from pushing the numerical settings far beyond the example defaults;
+the comfort target is |delta chi2| below 0.2. One knob at a time on
+the 3x2pt NLA configuration (frozen reference chi2 0.107):
+
+- cosmolike `accuracyboost` 2: +0.006 (the stress value 5: +0.045)
+- cosmolike `integration_accuracy` 10: -0.001
+- cosmolike `lmax` 200000: +0.012
+- `kmax_boltzmann` 40 with camb `kmax` 50: +0.004 (these two are one
+  physical cutoff seen from the two sides, so the scan moves them
+  together)
+- camb `AccuracyBoost` 2: +0.002
+- camb `k_per_logint` 50: -0.001
+
+All knobs raised at once: +0.008 (cosmic shear NLA), -0.003 (cosmic
+shear TATT), +0.016 (2x2pt NLA), +0.013 (2x2pt TATT), +0.018 (3x2pt
+NLA), +0.014 (3x2pt TATT). Every delta sits far below 0.2: the
+default numerical settings are adequate for these likelihoods and no
+change is needed.
+
+When several knobs move the chi2 in any project, raise cosmolike
+`accuracyboost` first (cheap), then camb `k_per_logint`, and only then
+camb `AccuracyBoost` (expensive at run time, and its apparent
+sensitivity can masquerade as unresolved cheap-knob resolution: in
+roman_kl an apparent +0.80 from camb `AccuracyBoost` collapsed to
++0.002 once `k_per_logint` was 50).

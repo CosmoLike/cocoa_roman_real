@@ -50,11 +50,13 @@ so run the command with nothing piped after it.
    tests on `roman_real.combo_2x2pt` (example2 with the probe selection
    reduced to galaxy clustering plus galaxy-galaxy lensing).
 
-Accuracy checks (`test_accuracy.py`, A1-A6): the three probes with
-both IA models re-evaluated with the numerical settings pushed far
-beyond the defaults (cosmolike accuracyboost 5, integration_accuracy
-10, lmax 200000, kmax_boltzmann 40; CAMB AccuracyBoost 2,
-k_per_logint 50, kmax 50). Each check
+Accuracy checks (`test_accuracy.py`): first a one-knob-at-a-time scan
+on the 3x2pt NLA configuration (each knob's chi2 and delta print as
+`KNOB` lines), then A1-A6, the three probes with both IA models
+re-evaluated with every knob raised at once (cosmolike accuracyboost
+2, integration_accuracy 10, lmax 200000, kmax_boltzmann 40; CAMB
+AccuracyBoost 2, k_per_logint 50, kmax 50; the scan also stresses
+accuracyboost 5 on its own). Each check
 reports delta chi2 = chi2(high accuracy) - chi2(default, frozen), no
 pass/fail. High-accuracy evaluations take minutes; skip the file with
 `--ignore ./projects/roman_real/tests/test_accuracy.py`.
