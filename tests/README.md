@@ -71,9 +71,12 @@ The test files and the configurations they cover:
 
 | tests | file | configuration | checks |
 |-------|------|---------------|--------|
-| 1-4   | `test_example1.py` | cosmic shear; IA modeling: NLA and TATT | $\chi^2$ + race condition (OpenMP threading) |
-| 5-8   | `test_example2.py` | 3x2pt; IA modeling: NLA and TATT | $\chi^2$ + race condition (OpenMP threading) |
-| 11-14 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: NLA and TATT | $\chi^2$ + race condition (OpenMP threading) |
+| 1-2 | `test_example1.py` | cosmic shear; IA modeling: NLA | $\chi^2$ + race condition (OpenMP threading) |
+| 3-4 | `test_example1.py` | cosmic shear; IA modeling: TATT | $\chi^2$ + race condition (OpenMP threading) |
+| 5-6 | `test_example2.py` | 3x2pt; IA modeling: NLA | $\chi^2$ + race condition (OpenMP threading) |
+| 7-8 | `test_example2.py` | 3x2pt; IA modeling: TATT | $\chi^2$ + race condition (OpenMP threading) |
+| 11-12 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: NLA | $\chi^2$ + race condition (OpenMP threading) |
+| 13-14 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: TATT | $\chi^2$ + race condition (OpenMP threading) |
 | 15    | `test_notebook_interface.py` | the notebook-style direct interface: EXAMPLE_EVALUATE1.ipynb's call sequence (its own CAMB run, `set_cosmology`, `compute_data_vector_masked`, no cobaya) on the frozen cosmic-shear dataset and point | $\chi^2$ within 0.2 of the frozen cobaya reference |
 
 Test 15 exists because a changed interface binding (init_IA growing
