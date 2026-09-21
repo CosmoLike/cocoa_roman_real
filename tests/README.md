@@ -1,4 +1,4 @@
-# Unit tests for the roman_real likelihoods
+# Unit tests for the likelihoods
 
 These tests catch two kinds of silent breakage: a $\chi^2$ that drifted
 because code or data changed by accident, and a race condition (a bug
@@ -16,11 +16,11 @@ same.
 
 1. [Running the tests](#run_tests)
 2. [The tests](#the_tests)
-    1. [Running Accuracy checks](#accuracy_checks)
-    2. [Synthetic data vectors](#synthetic_vectors)
-3. [Appendices about the frozen state](#appendix)
-    1. [FAQ: How do the tests keep their own copy of configurations and data?](#frozen_copy)
-    2. [FAQ: How can maintainers refresh the frozen state?](#refreeze)
+    1. [Accuracy checks](#accuracy_checks)
+3. [Appendix](#appendix)
+    1. [FAQ: Do the tests keep their own data?](#frozen_copy)
+    2. [FAQ: Why do the TATT tests use their own data vector?](#synthetic_vectors)
+    3. [FAQ: How can maintainers refresh the snapshot?](#refreeze)
 
 ## Running the tests <a name="run_tests"></a>
 
@@ -64,37 +64,44 @@ The two checks and their pass limits:
 
 | check | pass limit                                        | a failure means                    |
 |-------|---------------------------------------------------|------------------------------------|
-| $\chi^2$  | within 0.2 of `frozen/reference_chi2.json`        | code or data changed the numbers   |
-| race condition | fresh vs 10th of 10 cosmologies in a row, to $10^{-4}$ | leftover state or an OpenMP race   |
+| $\Delta\chi^2$ | the recomputed $\chi^2$ must stay within 0.2 of the value stored in `frozen/reference_chi2.json` | code or data changed the numbers |
+| race condition | the fiducial evaluated on its own vs evaluated again after nine other cosmologies; the two must agree within $10^{-4}$ | leftover state or an OpenMP race |
+
+Everything the tests compare against lives under `frozen/`: one
+snapshot of configurations, data, and reference values, captured
+together when the references were generated and unchanged since. The
+[Appendix](#appendix) explains how the snapshot is protected.
 
 The test files and the configurations they cover:
 
 | test | file | configuration | what it checks |
 |---|---|---|---|
-| 1 | `test_example1.py` | cosmic shear; IA modeling: NLA | $\chi^2$ at the frozen fiducial point vs the stored reference |
-| 2 | `test_example1.py` | cosmic shear; IA modeling: NLA | race condition (OpenMP threading): fresh vs 10th-of-10 evaluation |
-| 3 | `test_example1.py` | cosmic shear; IA modeling: TATT | $\chi^2$ at the frozen fiducial point vs the stored reference |
-| 4 | `test_example1.py` | cosmic shear; IA modeling: TATT | race condition (OpenMP threading): fresh vs 10th-of-10 evaluation |
-| 5 | `test_example2.py` | 3x2pt; IA modeling: NLA | $\chi^2$ at the frozen fiducial point vs the stored reference |
-| 6 | `test_example2.py` | 3x2pt; IA modeling: NLA | race condition (OpenMP threading): fresh vs 10th-of-10 evaluation |
-| 7 | `test_example2.py` | 3x2pt; IA modeling: TATT | $\chi^2$ at the frozen fiducial point vs the stored reference |
-| 8 | `test_example2.py` | 3x2pt; IA modeling: TATT | race condition (OpenMP threading): fresh vs 10th-of-10 evaluation |
-| 11 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: NLA | $\chi^2$ at the frozen fiducial point vs the stored reference |
-| 12 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: NLA | race condition (OpenMP threading): fresh vs 10th-of-10 evaluation |
-| 13 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: TATT | $\chi^2$ at the frozen fiducial point vs the stored reference |
-| 14 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: TATT | race condition (OpenMP threading): fresh vs 10th-of-10 evaluation |
-| 15 | `test_notebook_interface.py` | the notebook-style direct interface: EXAMPLE_EVALUATE1.ipynb's call sequence (its own CAMB run, `set_cosmology`, `compute_data_vector_masked`, no cobaya) on the frozen cosmic-shear dataset and point | $\chi^2$ within 0.2 of the frozen cobaya reference |
+| 1 | `test_example1.py` | cosmic shear; IA modeling: NLA | $\Delta\chi^2$ against the stored reference at the fiducial point |
+| 2 | `test_example1.py` | cosmic shear; IA modeling: NLA | race condition (OpenMP threading): fiducial alone vs after nine other cosmologies |
+| 3 | `test_example1.py` | cosmic shear; IA modeling: TATT | $\Delta\chi^2$ against the stored reference at the fiducial point |
+| 4 | `test_example1.py` | cosmic shear; IA modeling: TATT | race condition (OpenMP threading): fiducial alone vs after nine other cosmologies |
+| 5 | `test_example2.py` | 3x2pt; IA modeling: NLA | $\Delta\chi^2$ against the stored reference at the fiducial point |
+| 6 | `test_example2.py` | 3x2pt; IA modeling: NLA | race condition (OpenMP threading): fiducial alone vs after nine other cosmologies |
+| 7 | `test_example2.py` | 3x2pt; IA modeling: TATT | $\Delta\chi^2$ against the stored reference at the fiducial point |
+| 8 | `test_example2.py` | 3x2pt; IA modeling: TATT | race condition (OpenMP threading): fiducial alone vs after nine other cosmologies |
+| 11 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: NLA | $\Delta\chi^2$ against the stored reference at the fiducial point |
+| 12 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: NLA | race condition (OpenMP threading): fiducial alone vs after nine other cosmologies |
+| 13 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: TATT | $\Delta\chi^2$ against the stored reference at the fiducial point |
+| 14 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: TATT | race condition (OpenMP threading): fiducial alone vs after nine other cosmologies |
+| 15 | `test_notebook_interface.py` | the notebook-style direct interface: EXAMPLE_EVALUATE1.ipynb's call sequence (its own CAMB run, `set_cosmology`, `compute_data_vector_masked`, no cobaya) on the frozen cosmic-shear dataset and point | $\Delta\chi^2$ against the stored cobaya reference, within 0.2 |
 
 Test 15 exists because a changed interface binding (init_IA growing
 `ia_code`) or a grid rejected by the C layer breaks every notebook
 while the yaml pipeline keeps passing.
 
-### Running Accuracy checks (`test_accuracy.py`, A1-A6) <a name="accuracy_checks"></a>
+### Accuracy checks (`test_accuracy.py`, A1-A6) <a name="accuracy_checks"></a>
 
-First a one-knob-at-a-time scan on the 3x2pt NLA configuration (each knob's $\chi^2$ and delta print
-as `KNOB` lines; the scan also stresses `accuracyboost: 5` on its
-own), then A1-A6: the three probes with both IA models re-evaluated
-with every setting raised at once:
+We change one accuracy parameter at a time on the 3x2pt NLA
+configuration (each parameter's $\Delta\chi^2$ prints as a `KNOB`
+line, the label the test output uses; the scan also stresses
+`accuracyboost: 5` on its own). Then checks A1-A6 re-evaluate
+cosmic shear, 3x2pt, and 2x2pt, with NLA and TATT, with every
+setting raised at once:
 
 | setting | raised to | what it controls |
 |---------|-----------|------------------|
@@ -102,13 +109,18 @@ with every setting raised at once:
 | `integration_accuracy` (cosmolike) | 10 | extra refinement passes of cosmolike's numerical integrals |
 | `lmax` (cosmolike) | 200000 | highest multipole of the internal harmonic-space $C_\ell$ tables that cosmolike transforms into the real-space correlation functions; arcminute scales need very high $\ell$ |
 | `kmax_boltzmann` (cosmolike) | 40 | the k cutoff of the power spectrum the likelihood requests from CAMB |
-| `AccuracyBoost` (CAMB) | 2 | CAMB's overall accuracy multiplier: denser sampling in every internal CAMB grid, the most expensive knob |
+| `AccuracyBoost` (CAMB) | 2 | CAMB's overall accuracy multiplier: denser sampling in every internal CAMB grid, the most expensive setting |
 | `k_per_logint` (CAMB) | 50 | k samples CAMB computes per logarithmic interval of the transfer functions |
 | `kmax` (CAMB) | 50 | highest k of CAMB's matter power spectrum; one physical cutoff with `kmax_boltzmann`, seen from the CAMB side |
 
-Each check reports $\Delta\chi^2 = \chi^2(\text{high accuracy}) -
-\chi^2(\text{default})$: the numerical error of the default
-settings. No pass/fail; high-accuracy evaluations take minutes.
+Each check reports the $\Delta\chi^2$ between the high-accuracy and
+the default evaluations: the numerical error of the default
+settings. No pass/fail.
+
+> [!NOTE]
+> High-accuracy evaluations take minutes.
+
+#### Running Accuracy checks <a name="run_accuracy"></a>
 
 We assume users are in the Conda cocoa environment from a previous
 `conda activate cocoa` command, that the shell is bash, and that the
@@ -127,16 +139,9 @@ To run every other test while skipping these:
 
     python -m pytest ./projects/roman_real/tests --ignore ./projects/roman_real/tests/test_accuracy.py
 
-### Synthetic data vectors <a name="synthetic_vectors"></a>
+# Appendix <a name="appendix"></a>
 
-All TATT variants evaluate against `frozen/data/tatt_roman_real.dataset`,
-a data vector generated with TATT at the fiducial point during the
-freeze: at its own minimum the TATT $\chi^2$ responds quadratically to
-numerical changes instead of linearly on the side of a hill.
-
-# Appendices about the frozen state <a name="appendix"></a>
-
-## :interrobang: FAQ: How do the tests keep their own copy of configurations and data? <a name="frozen_copy"></a>
+## :interrobang: FAQ: Do the tests keep their own data? <a name="frozen_copy"></a>
 
 The tests read nothing from the live project: not `../data`, not the
 `EXAMPLE_EVALUATE` yaml files, and not the likelihood default yaml
@@ -154,13 +159,20 @@ written out, including the ones that normally come from
 files cannot change what the tests evaluate.
 
 `manifest_sha256.json` stores a SHA-256 hash (a fingerprint that
-changes when any byte changes) of every frozen file. Each test
-verifies the manifest first and refuses to run when a frozen file was
+changes when any byte changes) of every file under `frozen/`. Each test
+verifies the manifest first and refuses to run when a file under `frozen/` was
 edited, naming the file. The result: users may change the live data
-and examples freely, and nobody can quietly edit the frozen state
+and examples freely, and nobody can quietly edit the snapshot
 either.
 
-## :interrobang: FAQ: How can maintainers refresh the frozen state? <a name="refreeze"></a>
+## :interrobang: FAQ: Why do the TATT tests use their own data vector? <a name="synthetic_vectors"></a>
+
+All TATT variants evaluate against `frozen/data/tatt_roman_real.dataset`,
+a data vector generated with TATT at the fiducial point when the
+snapshot was created: at its own minimum the TATT $\chi^2$ responds quadratically to
+numerical changes instead of linearly on the side of a hill.
+
+## :interrobang: FAQ: How can maintainers refresh the snapshot? <a name="refreeze"></a>
 
 A deliberate change to the data vectors, n(z), covariance, examples,
 or likelihood defaults requires a re-freeze.
@@ -174,7 +186,7 @@ the script `start_cocoa.sh`
 
     source start_cocoa.sh
 
-**Step :two:**: rebuild the frozen state
+**Step :two:**: rebuild the snapshot
 
     python ./projects/roman_real/tests/generate_frozen_reference.py --overwrite
 
