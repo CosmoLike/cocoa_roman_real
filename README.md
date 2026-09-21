@@ -651,7 +651,7 @@ the script `start_cocoa.sh`
 
     python -m pytest ./projects/roman_real/tests
 
-# Minimum accuracy parameters
+## Minimum accuracy parameters
 
 The advisory checks in `tests/test_accuracy.py` measure the
 numerical error of the default accuracy settings: each setting is
