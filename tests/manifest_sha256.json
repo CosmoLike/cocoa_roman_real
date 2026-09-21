@@ -1,0 +1,24 @@
+{
+  "_comment": "SHA-256 of every file under tests/frozen/; verified by every test before evaluating anything.",
+  "files": {
+    "frozen/EXAMPLE_EVALUATE1.yaml": "f93cd818185ddb1ff417d8fe2517fee3bdd64229074578a414fbe130b5c98009",
+    "frozen/EXAMPLE_EVALUATE2.yaml": "934e7498a9dbd99e93553222ba1a0f590a5c2d2478613fd6712be693fdd28273",
+    "frozen/data/baryons_logPkR.h5": "1ab5cc0604925089787dd775740b368db2a83a0d10c88af54f3b3f4bfa33570d",
+    "frozen/data/calculate_mask.py": "9c88d8c859c03256d7f9e356ba20a7312972504543a594f111fb50e0bd0f2203",
+    "frozen/data/cov_roman_real": "e151f0cc09c17f6b902b5d0b91dc85ceada8a8a286a2b8a8c1d690a9377698eb",
+    "frozen/data/example1.dataset": "a5dcb06302ae4acbe3bce3d32167d1c9bda58d7cfcd133fa2f7e58540ed2610e",
+    "frozen/data/example1.mask": "de63095b81c2cb01e94a5e6628c0c52b5925d4cc6917239fc79371b462063779",
+    "frozen/data/example1.modelvector": "333ea7593128101e6e1e575498971faba0d9be529b4eb6aab31c7ade205f24cc",
+    "frozen/data/example1.nz": "142a7068e93e432cad126c8d21b0285988210fd6e7d44fe2a4868f6d8c3576b6",
+    "frozen/data/example1_cov": "e279f38c1c415b4866b39d330191e33c319f508f2ac5798592833947aa237cd1",
+    "frozen/data/ones.dataset": "ad31b01c730658aed763a9a3cb3428687d5b4189ca69704074a6676a3a6ff1c8",
+    "frozen/data/ones.mask": "5e3b27f81de0046e468599b957665024f5b42a97cb47797ad85c5769fff1ce5f",
+    "frozen/data/pca.txt": "52b50538e307c1ee8787266fc022dc9366c75b3a92045ddd01c455a4d0d75de5",
+    "frozen/data/tatt_roman_real.dataset": "d66ecdd2fd29ef5a3137fae6372d890aa4a8cae70c76743d65648cbff344ab6a",
+    "frozen/data/tatt_roman_real.modelvector": "5120b8abac3756d38f31ff63b09a38747addf5164abe73c2f6cd2fc625327a2b",
+    "frozen/frozen_config_example1.py": "c1b225b1de9f69b307efbe7bba6dab08834e5983bd764da5333c9e6450ab82d3",
+    "frozen/frozen_config_example2.py": "5b0a78f40f150c97437e4c64a570db212b676cd635844972957de1819ca42eb0",
+    "frozen/frozen_config_example2_2x2pt.py": "3b736a642e63046ee8d81064bf3b41eee8ceda54dde6ba87dc867c55416519ce",
+    "frozen/reference_chi2.json": "3b19ca21c5cdf5496d5aa87ff18f9005b9ab9970544adc0473c39ebb85f8b8e9"
+  }
+}
