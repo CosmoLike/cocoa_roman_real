@@ -14,8 +14,11 @@
     "frozen/data/ones.dataset": "ad31b01c730658aed763a9a3cb3428687d5b4189ca69704074a6676a3a6ff1c8",
     "frozen/data/ones.mask": "5e3b27f81de0046e468599b957665024f5b42a97cb47797ad85c5769fff1ce5f",
     "frozen/data/pca.txt": "52b50538e307c1ee8787266fc022dc9366c75b3a92045ddd01c455a4d0d75de5",
-    "frozen/frozen_config_example1.py": "402e5f70fc64502068e72677761fffc8b573dc0e40e142f981488b5942be7617",
-    "frozen/frozen_config_example2.py": "b861c82c27ba2d46bb22db8790b6eb47fe6241f8fbe69d4e73e46654bc3866ef",
-    "frozen/reference_chi2.json": "978c1c0aadf38fa6decb29c243ab5bd6e0bee32c1c3b07188edb1fb633e22ae5"
+    "frozen/data/tatt_roman_real.dataset": "d66ecdd2fd29ef5a3137fae6372d890aa4a8cae70c76743d65648cbff344ab6a",
+    "frozen/data/tatt_roman_real.modelvector": "5120b8abac3756d38f31ff63b09a38747addf5164abe73c2f6cd2fc625327a2b",
+    "frozen/frozen_config_example1.py": "c1b225b1de9f69b307efbe7bba6dab08834e5983bd764da5333c9e6450ab82d3",
+    "frozen/frozen_config_example2.py": "5b0a78f40f150c97437e4c64a570db212b676cd635844972957de1819ca42eb0",
+    "frozen/frozen_config_example2_2x2pt.py": "3b736a642e63046ee8d81064bf3b41eee8ceda54dde6ba87dc867c55416519ce",
+    "frozen/reference_chi2.json": "3b19ca21c5cdf5496d5aa87ff18f9005b9ab9970544adc0473c39ebb85f8b8e9"
   }
 }
