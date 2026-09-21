@@ -653,7 +653,7 @@ from pushing the numerical settings far beyond the example defaults;
 the comfort target is |delta chi2| below 0.2. One knob at a time on
 the 3x2pt NLA configuration (frozen reference chi2 0.107):
 
-- cosmolike `accuracyboost` 2: +0.006 (the stress value 5: +0.045)
+- cosmolike `accuracyboost` 3: +0.004 (the stress value 5: +0.045)
 - cosmolike `integration_accuracy` 10: -0.001
 - cosmolike `lmax` 200000: +0.012
 - `kmax_boltzmann` 40 with camb `kmax` 50: +0.004 (these two are one
@@ -662,9 +662,11 @@ the 3x2pt NLA configuration (frozen reference chi2 0.107):
 - camb `AccuracyBoost` 2: +0.002
 - camb `k_per_logint` 50: -0.001
 
-All knobs raised at once: +0.008 (cosmic shear NLA), -0.003 (cosmic
-shear TATT), +0.016 (2x2pt NLA), +0.013 (2x2pt TATT), +0.018 (3x2pt
-NLA), +0.014 (3x2pt TATT). Every delta sits far below 0.2: the
+All knobs raised at once (comparing the default accuracyboost 1
+against 3, the highest value that stays healthy in every project
+scanned): +0.009 (cosmic shear NLA), -0.001 (cosmic shear TATT),
++0.020 (2x2pt NLA), +0.019 (2x2pt TATT), +0.020 (3x2pt NLA), +0.022
+(3x2pt TATT). Every delta sits far below 0.2: the
 default numerical settings are adequate for these likelihoods and no
 change is needed.
 
