@@ -48,6 +48,8 @@ import unittest
 
 # The tests folder is not a package; put it on the import path so the
 # shared harness resolves no matter where pytest was launched from.
+# __file__ is this file's own path; insert(0, ...) puts its folder
+# FIRST in the search order, ahead of any same-named module.
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import cocoa_test_utils as u
 
@@ -57,6 +59,8 @@ EXAMPLE = "example1"
 # WORKER LAYER (mirrors cocoa_test_utils Section 5, for this file's
 # computation; the shared _worker only knows the cobaya evaluations)
 # =============================================================================
+# __file__ is this file's own path; the worker driver imports the
+# file by that absolute path (see _WORKER_DRIVER)
 _THIS_FILE = os.path.abspath(__file__)
 
 # A flag distinct from the shared harness's, so a notebook-interface
@@ -106,15 +110,21 @@ def _get_camb_cosmology(point, camb_args, kmax_boltzmann):
 
     h = point["H0"] / 100.0
     # neutrino correction as in the notebook: omegach2 subtracts the
-    # massive-neutrino contribution from the cold component
+    # massive-neutrino contribution from the cold component. ** is
+    # python's power operator (h**2 = h squared); ^ would be XOR
     omegabh2 = point["omegab"] * h**2
     omegach2 = (point["omegam"] - point["omegab"]) * h**2 \
         - (point["mnu"] * (3.046 / 3)**0.75) / 94.0708
+    # .get(key, fallback) returns the fallback when the frozen camb
+    # block carries no kmax of its own
     kmax = float(camb_args.get("kmax", kmax_boltzmann))
 
     # chi(z) support grid: interior segments drop their endpoint
     # (cosmolike aborts on non-monotone grids), same construction as
-    # the notebook and likelihood/_cosmolike_prototype_base.py
+    # the notebook and likelihood/_cosmolike_prototype_base.py.
+    # np.linspace(a, b, n) is n evenly spaced values from a to b;
+    # endpoint=False leaves the upper edge out, so the next segment
+    # can start there without duplicating a node
     tmp = int(1000 + 250 * 1.0)
     z_interp_1D = np.concatenate(
         (np.linspace(0.0, 3.0, max(100, int(0.80 * tmp)), endpoint=False),
@@ -128,6 +138,8 @@ def _get_camb_cosmology(point, camb_args, kmax_boltzmann):
          np.linspace(3.0, 49.99, 35)), axis=0)
     log10k_interp_2D = np.linspace(-4.99, 2.0, int(1250 + 250 * 1.0))
 
+    # every .get(name, default) below falls back to the notebook's
+    # default when the frozen extra_args leave that key out
     pars = camb.set_params(
         H0=point["H0"],
         ombh2=omegabh2,
@@ -177,6 +189,8 @@ def _get_camb_cosmology(point, camb_args, kmax_boltzmann):
 
     # growth from the linear P(k) at a fixed large scale, normalized
     # to its highest-z entry, exactly as the notebook builds it
+    # (np.sqrt, the 1+z factor, and the division by a single entry
+    # all act elementwise on the whole array)
     G_growth = np.sqrt(PKL.P(z_interp_2D, 0.0005)
                        / PKL.P(0, 0.0005)) * (1 + z_interp_2D)
     G_growth = G_growth / G_growth[len(G_growth) - 1]
@@ -216,6 +230,7 @@ def _notebook_chi2_impl():
 
     dataset = os.path.join(like["path"], like["data_file"])
     print(f"    dataset: {dataset}", flush=True)
+    # normpath collapses ./ and ../ segments in the path text
     ini = IniFile(os.path.normpath(dataset))
 
     # --- the notebook's init sequence (EXAMPLE_EVALUATE1.ipynb) ---
@@ -248,6 +263,8 @@ def _notebook_chi2_impl():
 
     # --- one CAMB run at the frozen point, notebook grids ---
     print("    running CAMB (notebook-style grids)...", flush=True)
+    # the returned 7-tuple unpacks by position into the named grids;
+    # the backslash continues the statement on the next line
     (log10k_2D, z_2D, lnPL, lnPNL, G_growth, z_1D, chi) = \
         _get_camb_cosmology(point, camb_args, like["kmax_boltzmann"])
 
@@ -262,7 +279,9 @@ def _notebook_chi2_impl():
                      chi=chi)
 
     # nuisance vectors ordered by tomographic bin, zero-padded to the
-    # 8 source bins exactly as the notebook passes them
+    # 8 source bins exactly as the notebook passes them. The
+    # comprehension collects roman_M1..roman_M8 in bin order:
+    # range(1, 9) runs from 1 and stops BEFORE 9
     ci.set_nuisance_shear_calib(
         M=[point[f"roman_M{i}"] for i in range(1, 9)])
     ci.set_nuisance_shear_photoz(
@@ -275,6 +294,8 @@ def _notebook_chi2_impl():
         B_TA=[point["roman_BTA_1"], 0, 0, 0, 0, 0, 0, 0])
 
     datavector = np.array(ci.compute_data_vector_masked())
+    # float() converts the returned value to a plain python float;
+    # :.6f below prints it with a fixed six decimals
     chi2 = float(ci.compute_chi2(datavector))
     print(f"    direct-interface chi2 = {chi2:.6f}", flush=True)
     if not np.isfinite(chi2):
@@ -295,6 +316,8 @@ def _worker(result_path):
     """
     u.require_cocoa_environment()
     value = _notebook_chi2_impl()
+    # json.dump writes the chi2 into the file as json text; the with
+    # block closes the file even when the dump fails
     with open(result_path, "w") as f:
         json.dump(value, f)
 
@@ -314,17 +337,28 @@ def notebook_interface_chi2():
     import subprocess
     import tempfile
 
+    # .get returns None when the flag is absent, so a normal
+    # (parent) process falls through and spawns the worker below
     if os.environ.get(_WORKER_FLAG) == "1":
         return _notebook_chi2_impl()
+    # delete=False keeps the file when the with block closes it: only
+    # a fresh unique NAME is needed; the worker writes the file and
+    # the finally below removes it
     with tempfile.NamedTemporaryFile("w", suffix=".json",
                                      delete=False) as tmp:
         result_path = tmp.name
+    # dict(os.environ) is a COPY of the environment: the edits below
+    # reach only the worker subprocess, never this process
     environment = dict(os.environ)
     environment[_WORKER_FLAG] = "1"
     environment["OMP_NUM_THREADS"] = u.REQUIRED_OMP_THREADS
+    # subprocess.run starts the worker and BLOCKS until it exits;
+    # env=environment hands the child the edited environment copy
     completed = subprocess.run(
         [sys.executable, "-c", _WORKER_DRIVER, _THIS_FILE, result_path],
         env=environment)
+    # the finally below runs on EVERY exit from the try, an exception
+    # included, so the temporary file never outlives this call
     try:
         if completed.returncode != 0:
             raise RuntimeError(
@@ -332,6 +366,8 @@ def notebook_interface_chi2():
                 f"{completed.returncode} before writing a result; a "
                 "cosmolike-level abort prints its reason (e.g. a grid "
                 "rejection from basics.c) just above")
+        # json.load parses the worker's file back into the number it
+        # dumped; float() pins the type
         with open(result_path) as f:
             return float(json.load(f))
     finally:
@@ -351,6 +387,8 @@ class TestNotebookInterface(unittest.TestCase):
     reference chi2 values.
     """
 
+    # @classmethod hands the class itself in as cls; unittest calls
+    # this once, before the first test of the class
     @classmethod
     def setUpClass(cls):
         u.require_cocoa_environment()
