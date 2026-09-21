@@ -16,7 +16,7 @@ Contents:
 
 1. [Running the tests](#run_tests)
 2. [The tests](#the_tests)
-    1. [Accuracy checks](#accuracy_checks)
+    1. [Running Accuracy checks](#accuracy_checks)
     2. [Synthetic data vectors](#synthetic_vectors)
 3. [Tests keep their own copy of configurations and data](#frozen_copy)
 4. [Refreshing the frozen state (maintainers only)](#refreeze)
@@ -83,7 +83,7 @@ Test 15 exists because a changed interface binding (init_IA growing
 `ia_code`) or a grid rejected by the C layer breaks every notebook
 while the yaml pipeline keeps passing.
 
-### Accuracy checks (`test_accuracy.py`, A1-A6) <a name="accuracy_checks"></a>
+### Running Accuracy checks (`test_accuracy.py`, A1-A6) <a name="accuracy_checks"></a>
 
 First a one-knob-at-a-time scan on the 3x2pt NLA configuration (each knob's $\chi^2$ and delta print
 as `KNOB` lines; the scan also stresses `accuracyboost: 5` on its
@@ -102,8 +102,14 @@ with every setting raised at once:
 
 Each check reports $\Delta\chi^2 = \chi^2(\text{high accuracy}) -
 \chi^2(\text{default})$: the numerical error of the default
-settings. No pass/fail. High-accuracy evaluations take minutes; run
-the file on its own, or skip it with
+settings. No pass/fail; high-accuracy evaluations take minutes.
+
+**Step :one:**: with the environment of
+[Running the tests](#run_tests), run the accuracy checks on their own
+
+    python -m pytest ./projects/roman_real/tests/test_accuracy.py
+
+To run every other test while skipping these:
 
     python -m pytest ./projects/roman_real/tests --ignore ./projects/roman_real/tests/test_accuracy.py
 
