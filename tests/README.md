@@ -52,7 +52,7 @@ few minutes. The test files force `OMP_NUM_THREADS=4` internally.
 ## The tests <a name="the_tests"></a>
 
 The standard configurations get four tests each: a $\chi^2$ drift check
-and a race check, both in the NLA and in the TATT intrinsic-alignment
+and a race-condition check, both in the NLA and in the TATT intrinsic-alignment
 model. The TATT variants set
 
     IA_model: 1
@@ -65,15 +65,15 @@ The two checks and their pass limits:
 | check | pass limit                                        | a failure means                    |
 |-------|---------------------------------------------------|------------------------------------|
 | $\chi^2$  | within 0.2 of `frozen/reference_chi2.json`        | code or data changed the numbers   |
-| race  | fresh vs 10th of 10 cosmologies in a row, to $10^{-4}$ | leftover state or an OpenMP race   |
+| race condition | fresh vs 10th of 10 cosmologies in a row, to $10^{-4}$ | leftover state or an OpenMP race   |
 
 The test files and the configurations they cover:
 
 | tests | file | configuration | checks |
 |-------|------|---------------|--------|
-| 1-4   | `test_example1.py` | cosmic shear | $\chi^2$ + race, NLA and TATT |
-| 5-8   | `test_example2.py` | 3x2pt | $\chi^2$ + race, NLA and TATT |
-| 11-14 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing) | $\chi^2$ + race, NLA and TATT |
+| 1-4   | `test_example1.py` | cosmic shear; IA modeling: NLA and TATT | $\chi^2$ + race condition (OpenMP threading) |
+| 5-8   | `test_example2.py` | 3x2pt; IA modeling: NLA and TATT | $\chi^2$ + race condition (OpenMP threading) |
+| 11-14 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: NLA and TATT | $\chi^2$ + race condition (OpenMP threading) |
 | 15    | `test_notebook_interface.py` | the notebook-style direct interface: EXAMPLE_EVALUATE1.ipynb's call sequence (its own CAMB run, `set_cosmology`, `compute_data_vector_masked`, no cobaya) on the frozen cosmic-shear dataset and point | $\chi^2$ within 0.2 of the frozen cobaya reference |
 
 Test 15 exists because a changed interface binding (init_IA growing
