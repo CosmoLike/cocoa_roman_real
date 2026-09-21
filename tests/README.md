@@ -36,8 +36,12 @@ so run the command with nothing piped after it.
 
 The standard configurations get four tests each: a $\chi^2$ drift check
 and a race check, both in the NLA and in the TATT intrinsic-alignment
-model (TATT: `IA_model: 1` with `roman_A2_1=0.05`, `roman_BTA_1=0.05`,
-`roman_A2_2=-1.51541`).
+model. The TATT variants set
+
+    IA_model: 1
+    roman_A2_1: 0.05
+    roman_BTA_1: 0.05
+    roman_A2_2: -1.51541
 
 | check | pass limit                                        | a failure means                    |
 |-------|---------------------------------------------------|------------------------------------|
@@ -56,15 +60,27 @@ Test 15 exists because a changed interface binding (init_IA growing
 while the yaml pipeline keeps passing.
 
 Accuracy checks (`test_accuracy.py`): first a one-knob-at-a-time scan
-on the 3x2pt NLA configuration (each knob's $\chi^2$ and delta print as
-`KNOB` lines), then A1-A6, the three probes with both IA models
-re-evaluated with every knob raised at once (cosmolike accuracyboost
-2, `integration_accuracy: 10`, `lmax: 200000`, `kmax_boltzmann: 40`; CAMB
-`AccuracyBoost: 2`, `k_per_logint: 50`, `kmax: 50`; the scan also stresses
-`accuracyboost: 5` on its own). Each check
-reports $\Delta\chi^2 = \chi^2(\text{high accuracy}) - \chi^2(\text{default})$, no
-pass/fail. High-accuracy evaluations take minutes; skip the file with
-`--ignore ./projects/roman_real/tests/test_accuracy.py`.
+on the 3x2pt NLA configuration (each knob's $\chi^2$ and delta print
+as `KNOB` lines; the scan also stresses `accuracyboost: 5` on its
+own), then A1-A6: the three probes with both IA models re-evaluated
+with every setting raised at once:
+
+    # cosmolike likelihood settings
+    accuracyboost: 2
+    integration_accuracy: 10
+    lmax: 200000
+    kmax_boltzmann: 40
+    # CAMB extra_args (kmax moves with kmax_boltzmann: one physical cutoff)
+    AccuracyBoost: 2
+    k_per_logint: 50
+    kmax: 50
+
+Each check reports $\Delta\chi^2 = \chi^2(\text{high accuracy}) -
+\chi^2(\text{default})$: the numerical error of the default
+settings. No pass/fail. High-accuracy evaluations take minutes; run
+the file on its own, or skip it with
+
+    python -m pytest ./projects/roman_real/tests --ignore ./projects/roman_real/tests/test_accuracy.py
 
 All TATT variants evaluate against `frozen/data/tatt_roman_real.dataset`,
 a data vector generated with TATT at the fiducial point during the
