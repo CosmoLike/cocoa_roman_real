@@ -630,24 +630,26 @@ The repository `emulators_code` provides the script `dataset_generator_lensing.p
 
 # Unit tests
 
-The `tests/` folder holds 13 pass/fail tests and an advisory accuracy
-file. The pass/fail tests compare the $\chi^2$ of cosmic shear, 3x2pt,
-and 2x2pt (each in NLA and TATT) against stored references within
-0.2, and re-evaluate each fiducial point as the 10th of 10 cosmologies
-in a row under `OMP_NUM_THREADS=4` to catch state leaks and OpenMP
-races. One further test rebuilds the notebook-style direct interface
-call sequence (EXAMPLE_EVALUATE1.ipynb: its own CAMB run,
-`set_cosmology`, `compute_data_vector_masked`, no cobaya) and checks
-it against the same stored reference, catching interface changes that
-break the notebooks while the yaml pipeline keeps passing. Everything they evaluate comes from the tests' own snapshot: fully expanded
-configurations, a private copy of the data, and the TATT and reference
-points, all pinned by a SHA-256 manifest, and every model build runs
-in its own worker subprocess. From the `Cocoa/` folder, with the cocoa
-environment active and `start_cocoa.sh` sourced:
+The `tests/` folder holds unit tests for the likelihoods of this
+project: they compare each likelihood against stored reference
+values, check for race conditions from OpenMP threading, and measure
+the numerical error of the default accuracy settings. The
+tests read nothing from the live project;
+[tests/README.md](tests/README.md) describes every test, the tests'
+own data snapshot, and how to refresh it.
+
+We assume users are in the Conda cocoa environment from a previous
+`conda activate cocoa` command, that the shell is bash, and that the
+current folder is the cocoa main folder `cocoa/Cocoa`.
+
+**Step :one:**: activate the private Python environment by sourcing
+the script `start_cocoa.sh`
+
+    source start_cocoa.sh
+
+**Step :two:**: run the tests of this project
 
     python -m pytest ./projects/roman_real/tests
-
-`tests/README.md` describes every test and how to refresh the snapshot.
 
 # Minimum accuracy parameters
 
