@@ -71,10 +71,10 @@ The test files and the configurations they cover:
 
 | tests | file | configuration | checks |
 |-------|------|---------------|--------|
-| 1-4   | `test_example1.py` | cosmic shear (example1) | $\chi^2$ + race, NLA and TATT |
-| 5-8   | `test_example2.py` | 3x2pt (example2) | $\chi^2$ + race, NLA and TATT |
-| 11-14 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: example2 reduced to galaxy clustering plus galaxy-galaxy lensing) | $\chi^2$ + race, NLA and TATT |
-| 15    | `test_notebook_interface.py` | the notebook-style direct interface: EXAMPLE_EVALUATE1.ipynb's call sequence (its own CAMB run, `set_cosmology`, `compute_data_vector_masked`, no cobaya) on the frozen example1 dataset and point | $\chi^2$ within 0.2 of the frozen cobaya reference |
+| 1-4   | `test_example1.py` | cosmic shear | $\chi^2$ + race, NLA and TATT |
+| 5-8   | `test_example2.py` | 3x2pt | $\chi^2$ + race, NLA and TATT |
+| 11-14 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing) | $\chi^2$ + race, NLA and TATT |
+| 15    | `test_notebook_interface.py` | the notebook-style direct interface: EXAMPLE_EVALUATE1.ipynb's call sequence (its own CAMB run, `set_cosmology`, `compute_data_vector_masked`, no cobaya) on the frozen cosmic-shear dataset and point | $\chi^2$ within 0.2 of the frozen cobaya reference |
 
 Test 15 exists because a changed interface binding (init_IA growing
 `ia_code`) or a grid rejected by the C layer breaks every notebook
