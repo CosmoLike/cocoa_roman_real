@@ -628,7 +628,7 @@ The repository `emulators_code` provides the script `dataset_generator_lensing.p
 
  
 
-## Unit tests
+# Unit tests
 
 The `tests/` folder holds 13 pass/fail tests and an advisory accuracy
 file. The pass/fail tests compare the chi2 of cosmic shear, 3x2pt,
@@ -650,7 +650,7 @@ environment active and `start_cocoa.sh` sourced:
 `tests/README.md` describes every test and how to refresh the frozen
 state.
 
-## Minimum accuracy parameters
+# Minimum accuracy parameters
 
 The accuracy checks (`tests/test_accuracy.py`) measured the chi2 shift
 from pushing the numerical settings far beyond the example defaults;
