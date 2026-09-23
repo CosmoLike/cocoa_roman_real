@@ -30,6 +30,7 @@
     "frozen/data/pca.txt": "52b50538e307c1ee8787266fc022dc9366c75b3a92045ddd01c455a4d0d75de5",
     "frozen/data/tatt_roman_real.dataset": "d66ecdd2fd29ef5a3137fae6372d890aa4a8cae70c76743d65648cbff344ab6a",
     "frozen/data/tatt_roman_real.modelvector": "5120b8abac3756d38f31ff63b09a38747addf5164abe73c2f6cd2fc625327a2b",
+    "frozen/data/tatt_roman_real_ones.dataset": "39ac1c6895a20bde1ee366c9b3be81a76dfd5cacef84b76bdc035781b459fc15",
     "frozen/frozen_config_example1.py": "c1b225b1de9f69b307efbe7bba6dab08834e5983bd764da5333c9e6450ab82d3",
     "frozen/frozen_config_example2.py": "5b0a78f40f150c97437e4c64a570db212b676cd635844972957de1819ca42eb0",
     "frozen/frozen_config_example2_2x2pt.py": "3b736a642e63046ee8d81064bf3b41eee8ceda54dde6ba87dc867c55416519ce",
