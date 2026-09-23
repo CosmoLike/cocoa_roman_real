@@ -17,9 +17,10 @@ same.
 1. [Running the tests](#run_tests)
 2. [The tests](#the_tests)
     1. [The CFASTPT vs FASTPT comparison](#cfastpt_fastpt)
-    2. [Accuracy checks](#accuracy_checks)
-    3. [Baryonic feedback accuracy checks](#baryon_accuracy_checks)
-    4. [Baryonic feedback drift tests](#baryon_drift_tests)
+    2. [The Halofit vs EE2 checks](#halofit_ee2)
+    3. [Accuracy checks](#accuracy_checks)
+    4. [Baryonic feedback accuracy checks](#baryon_accuracy_checks)
+    5. [Baryonic feedback drift tests](#baryon_drift_tests)
 3. [Appendix](#appendix)
     1. [FAQ: Do the tests keep their own data?](#frozen_copy)
     2. [FAQ: Why do the TATT tests use their own data vector?](#synthetic_vectors)
@@ -219,6 +220,55 @@ settings
 Test 15 exists because a changed interface binding (init_IA growing
 `ia_code`) or a grid rejected by the C layer breaks every notebook
 while the yaml pipeline keeps passing.
+
+### The Halofit vs EE2 checks (`test_nonlinear.py`, NL1-NL2) <a name="halofit_ee2"></a>
+
+The likelihood can source the nonlinear matter power from CAMB's
+Takahashi halofit (`non_linear_emul: 2`, the frozen contract's
+setting) or from EuclidEmulator2 (`non_linear_emul: 1`). Check NL1
+evaluates the cosmic-shear data vector with both at ten fixed
+cosmologies across the omegam/ns/As space (every other parameter at
+the frozen fiducial) and reports, per cosmology, the
+$\Delta\chi^2$ of the Halofit vector against the EE2 vector; check
+NL2 repeats the sweep on the 3x2pt likelihood.
+
+The EE2 vector is that cosmology's fiducial, so the baseline is
+zero by construction and no stored data vector enters the metric.
+The checks are advisory - there is no pass limit: the numbers say
+how much of the statistical error budget the Halofit-vs-emulator
+difference consumes under the chosen scale cuts, the question "can
+Halofit be used on real data analysis at this mask". The `--mask`
+option of the comparison sweeps applies.
+
+On 2026-09-23 NL1 measures, under the frozen mask, per-cosmology
+$\Delta\chi^2$ between 5.4 and 253.7 (median 27.7), largest at the
+high-omegam draws; NL2 measures between 65.1 and 743.3 (median
+150.1). At these ten cosmologies the two nonlinear-P(k) sources are
+not interchangeable at this project's precision, even under the
+frozen scale cuts.
+
+Under `--mask=ones` (2026-09-23) NL1 repeats its frozen-mask
+numbers digit for digit - the frozen `example1.mask` keeps all
+1,080 cosmic-shear points, so the two masks agree on that section.
+NL2 does not run under `--mask=ones`: cosmolike stops at
+`IP::set_inv_cov: masked cov not positive definite`, the all-ones
+covariance limitation the Warning above records for the 3x2pt
+CFASTPT sweep.
+
+#### Running the Halofit vs EE2 checks <a name="run_halofit_ee2"></a>
+
+We assume users are in the Conda cocoa environment from a previous
+`conda activate cocoa` command, that the shell is bash, and that the
+current folder is the cocoa main folder `cocoa/Cocoa`.
+
+**Step :one:**: activate the private Python environment by sourcing
+the script `start_cocoa.sh`
+
+    source start_cocoa.sh
+
+**Step :two:**: run the checks on their own
+
+    python -m pytest ./projects/roman_real/tests/test_nonlinear.py
 
 ### Accuracy checks (`test_accuracy.py`, A1-A6) <a name="accuracy_checks"></a>
 
