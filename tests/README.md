@@ -155,19 +155,19 @@ the table below is this project's own measurement:
 
 ![The 30 comparison points, colored by the per-point difference](cfastpt_vs_fastpt_points.png)
 
-The same sweep on the 3x2pt likelihood (test 17, 2026-09-23)
-measures max $\Delta\chi^2 = 0.027$ at the defaults and $0.010$ at
-the pushed camb/cosmolike settings; on the 2x2pt likelihood
-(test 18, 2026-09-23) it measures $0.00031$ and $0.00015$, the
-mildest of the three, with the TATT tables entering through
-galaxy-galaxy lensing alone.
+Measured on 2026-09-23:
 
-Under the all-ones mask (`--mask=ones`, 2026-09-23: no scale cuts,
-all 2,115 points weighted) cosmic shear repeats its frozen-mask
-numbers digit for digit - the frozen `example1.mask` keeps all
-1,080 cosmic-shear points, so the two masks agree on that section -
-and measures max $\Delta\chi^2 = 0.0076$ at the pushed settings;
-2x2pt measures $0.0012$ at the defaults and $0.00057$ pushed.
+- Test 17 (3x2pt): max $\Delta\chi^2 = 0.027$ at the defaults,
+  $0.010$ at the pushed camb/cosmolike settings.
+- Test 18 (2x2pt): $0.00031$ and $0.00015$, the mildest of the
+  three, with the TATT tables entering through galaxy-galaxy
+  lensing alone.
+- `--mask=ones` (no scale cuts, all 2,115 points weighted): cosmic
+  shear repeats its frozen-mask numbers digit for digit - the
+  frozen `example1.mask` keeps all 1,080 cosmic-shear points, so
+  the two masks agree on that section - and measures max
+  $\Delta\chi^2 = 0.0076$ at the pushed settings; 2x2pt measures
+  $0.0012$ at the defaults and $0.00057$ pushed.
 
 > [!Warning]
 > The 3x2pt sweep does not run under `--mask=ones` (2026-09-23):
@@ -240,20 +240,23 @@ difference consumes under the chosen scale cuts, the question "can
 Halofit be used on real data analysis at this mask". The `--mask`
 option of the comparison sweeps applies.
 
-On 2026-09-23 NL1 measures, under the frozen mask, per-cosmology
-$\Delta\chi^2$ between 5.4 and 253.7 (median 27.7), largest at the
-high-omegam draws; NL2 measures between 65.1 and 743.3 (median
-150.1). At these ten cosmologies the two nonlinear-P(k) sources are
-not interchangeable at this project's precision, even under the
-frozen scale cuts.
+Measured on 2026-09-23 (the figure below, frozen mask):
 
-Under `--mask=ones` (2026-09-23) NL1 repeats its frozen-mask
-numbers digit for digit - the frozen `example1.mask` keeps all
-1,080 cosmic-shear points, so the two masks agree on that section.
-NL2 does not run under `--mask=ones`: cosmolike stops at
-`IP::set_inv_cov: masked cov not positive definite`, the all-ones
-covariance limitation the Warning above records for the 3x2pt
-CFASTPT sweep.
+- NL1 (cosmic shear): per-cosmology $\Delta\chi^2$ between 5.4 and
+  253.7 (median 27.7), largest at the high-omegam draws; repeats
+  its frozen-mask numbers digit for digit under `--mask=ones` - the
+  frozen `example1.mask` keeps all 1,080 cosmic-shear points, so
+  the two masks agree on that section.
+- NL2 (3x2pt): between 65.1 and 743.3 (median 150.1); does not run
+  under `--mask=ones` - cosmolike stops at
+  `IP::set_inv_cov: masked cov not positive definite`, the all-ones
+  covariance limitation the Warning above records for the 3x2pt
+  CFASTPT sweep.
+- At these ten cosmologies the two nonlinear-P(k) sources are not
+  interchangeable at this project's precision, even under the
+  frozen scale cuts.
+
+![The ten cosmologies, colored by the Halofit-vs-EE2 difference](halofit_vs_ee2_points.png)
 
 #### Running the Halofit vs EE2 checks <a name="run_halofit_ee2"></a>
 
