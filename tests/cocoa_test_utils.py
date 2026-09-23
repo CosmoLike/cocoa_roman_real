@@ -212,6 +212,12 @@ _H = _cct.CocoaTestHarness(
     fastpt_low_settings=FASTPT_LOW_SETTINGS,
     fastpt_high_settings=FASTPT_HIGH_SETTINGS,
     fastpt_points=FASTPT_COMPARISON_POINTS,
+    # the masks the CFASTPT-vs-FASTPT sweeps can run under (the
+    # --mask option of the tests): "frozen" keeps the example1.mask
+    # scale cuts of tatt_roman_real.dataset, "ones" selects
+    # tatt_roman_real_ones.dataset, identical except its mask_file
+    # names the all-ones mask (every data point kept)
+    fastpt_masks=("frozen", "ones"),
 )
 
 # ---- module functions re-exported from the core (no project state) ----------

@@ -93,15 +93,18 @@ The test files and the configurations they cover:
 | 14 | `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`: the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing); IA modeling: TATT | race condition (OpenMP threading): fiducial alone vs after nine other cosmologies |
 | 15 | `test_notebook_interface.py` | the notebook-style direct interface: EXAMPLE_EVALUATE1.ipynb's call sequence (its own CAMB run, `set_cosmology`, `compute_data_vector_masked`, no cobaya) on the frozen cosmic-shear dataset and point | $\Delta\chi^2$ against the stored cobaya reference, within 0.2 |
 | 16 | `test_fastpt.py` | cosmic shear; IA modeling: TATT; the C cfastpt (`IA_code: 0`) vs the python FAST-PT package (`IA_code: 1`) at 30 fixed points (20 across the intrinsic-alignment prior plus a one-parameter-at-a-time family), cosmology at the fiducial | $\Delta\chi^2$ of the FAST-PT data vector against the cfastpt data vector at the same point; the cfastpt vector is that point's fiducial, so agreement means zero |
+| 17 | `test_fastpt.py` | 3x2pt; IA modeling: TATT; the same comparison as test 16 on the 3x2pt likelihood (`roman_real.combo_3x2pt`) | the same pass rule as test 16, with the data-vector difference weighted by the 3x2pt masked inverse covariance |
+| 18 | `test_fastpt.py` | 2x2pt; IA modeling: TATT; the same comparison as test 16 on the 2x2pt likelihood (`roman_real.combo_2x2pt`) | the same pass rule as test 16; clustering carries no intrinsic alignment, so the TATT tables enter through galaxy-galaxy lensing alone, weighted by the 2x2pt masked inverse covariance |
 
-### The CFASTPT vs FASTPT comparison (`test_fastpt.py`, test 16) <a name="cfastpt_fastpt"></a>
+### The CFASTPT vs FASTPT comparison (`test_fastpt.py`, tests 16-18) <a name="cfastpt_fastpt"></a>
 
 Cosmolike computes the TATT perturbation-theory integrals with two
 implementations: cfastpt, the C code built into the interface
 (`IA_code: 0`), and the python FAST-PT package through the fastpt
-theory block (`IA_code: 1`). Test 16 evaluates both at 30
-fixed points across the intrinsic-alignment prior and checks
-their agreement.
+theory block (`IA_code: 1`). Both are evaluated at 30 fixed points
+across the intrinsic-alignment prior and checked for agreement:
+test 16 on cosmic shear, test 17 on the 3x2pt likelihood, test 18
+on the 2x2pt likelihood.
 
 At every point the cfastpt data vector is the fiducial: the reported
 quantity is the $\Delta\chi^2$ of the FAST-PT vector against it,
@@ -117,9 +120,21 @@ with a cubic spline in log k upsampling the terms from one grid
 onto the other.
 
 Both boosts are rebased so 1.0 is the converged configuration. The
-test runs FAST-PT at the defaults with the 0.2 band of the other
+tests run FAST-PT at the defaults with the 0.2 band of the other
 checks as the pass limit; a doubled configuration repeats the
 measurement as an advisory.
+
+In test 17 the TATT terms also enter galaxy-galaxy lensing, and the
+difference is weighted by the 3x2pt masked inverse covariance. The
+frozen configuration fixes the one-loop bias amplitudes
+(`roman_B2_*`) at zero, so the one-loop galaxy-bias tables both
+implementations compute multiply by zero: the sweep scores the
+intrinsic-alignment tables alone, on the wider data vector.
+
+Test 18 repeats the sweep on the 2x2pt likelihood. Clustering
+carries no intrinsic alignment, so there the TATT tables are scored
+through galaxy-galaxy lensing alone, under the 2x2pt masked
+inverse covariance.
 
 > [!NOTE]
 > Before the two-grid upgrade of the fastpt theory block (2026-09)
@@ -138,6 +153,28 @@ the table below is this project's own measurement:
 | 2,048,900 (`accuracyboost: 2`) | 1,300 (`internal_accuracyboost: 2`) | 0.0171 | 1.8 s |
 
 ![The 30 comparison points, colored by the per-point difference](cfastpt_vs_fastpt_points.png)
+
+The same sweep on the 3x2pt likelihood (test 17, 2026-09-23)
+measures max $\Delta\chi^2 = 0.027$ at the defaults and $0.010$ at
+the pushed camb/cosmolike settings; on the 2x2pt likelihood
+(test 18, 2026-09-23) it measures $0.00031$ and $0.00015$, the
+mildest of the three, with the TATT tables entering through
+galaxy-galaxy lensing alone.
+
+Under the all-ones mask (`--mask=ones`, 2026-09-23: no scale cuts,
+all 2,115 points weighted) cosmic shear repeats its frozen-mask
+numbers digit for digit - the frozen `example1.mask` keeps all
+1,080 cosmic-shear points, so the two masks agree on that section -
+and measures max $\Delta\chi^2 = 0.0076$ at the pushed settings;
+2x2pt measures $0.0012$ at the defaults and $0.00057$ pushed.
+
+> [!Warning]
+> The 3x2pt sweep does not run under `--mask=ones` (2026-09-23):
+> cosmolike stops at `IP::set_inv_cov: masked cov not positive
+> definite`. The shipped covariance is positive definite only under
+> the frozen scale cuts - on the full 2,115-point vector its
+> smallest eigenvalue is negative - so there is no all-ones 3x2pt
+> measurement.
 
 > [!NOTE]
 > The fastpt defaults hold this accuracy on their own; raising the
@@ -166,8 +203,17 @@ settings
 
 > [!NOTE]
 > `--high=1`: applies the pushed camb/cosmolike settings of the
-> accuracy checks to every block of test 16 (the other tests do not
-> read it). The full comparison is both invocations.
+> accuracy checks to every block of tests 16-18 (the other tests do
+> not read it). The full comparison is both invocations.
+
+> [!NOTE]
+> `--mask`: reruns tests 16-18 under a different scale-cut mask.
+> `--mask=frozen` (the default) keeps the frozen contract's
+> `example1.mask` scale cuts (1,950 of the 2,115 data points);
+> `--mask=ones` keeps every point (no scale cuts), the strictest
+> comparison. Each choice is a frozen TATT dataset variant
+> differing only in its `mask_file` line, and the 0.2 pass rule
+> applies unchanged.
 
 
 Test 15 exists because a changed interface binding (init_IA growing
