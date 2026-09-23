@@ -671,3 +671,22 @@ against the 0.2 band the reference tests allow. No measured values
 are quoted here: rerun the checks to measure them on the current
 code, and see [tests/README.md](tests/README.md) for each check,
 the settings raised, and what each setting controls.
+
+### FAST-PT settings under `IA_code: 1`
+
+The example yamls' commented `fastpt` block recommends
+`accuracyboost: 640`. At the shipped FAST-PT grid, the
+python FAST-PT and the C cfastpt implementations of the TATT
+perturbation-theory integrals disagree by up to
+$\Delta\chi^2 = 2248$ on the cosmic-shear data
+vector across the intrinsic-alignment prior, and the disagreement
+falls as a power law with the FAST-PT grid boost, crossing the 0.2
+band at 640. Unit test 16 pins the comparison;
+[tests/README.md](tests/README.md#cfastpt_fastpt) carries the
+convergence table.
+
+> [!Warning]
+> Do not lower the fastpt `accuracyboost` below 640 in a
+> TATT analysis with `IA_code: 1`. Production analyses use cfastpt
+> (`IA_code: 0`), the converged and faster reference.
+

@@ -555,10 +555,15 @@ theory:
       accurate_massive_neutrino_transfers: false
       k_per_logint: 15
       kmax: 10.0
+#  Warning: keep the fastpt accuracyboost at 640 or above under
+#  TATT with IA_code: 1. At the shipped boost 1, the FAST-PT and
+#  cfastpt data vectors differ by up to delta chi2 = 2248 across
+#  the intrinsic-alignment prior (see tests/README.md, test
+#  16, for the convergence table).
 #  fastpt:
 #    path: ./external_modules/code/FAST-PT
 #    extra_args:
-#      accuracyboost: 10
+#      accuracyboost: 640
 #      kmax_boltzmann: 7.5
 #      extrap_kmax: 250.0
 sampler:
