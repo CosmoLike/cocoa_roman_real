@@ -173,6 +173,14 @@ model).
 > For the sampled parameters of each model, their validity ranges, and the `bfmt`
 > options, see `Cocoa/external_modules/code/baryon_suppression/README.md`.
 
+# Table of contents <a name="table_of_contents"></a>
+
+1. [Baryonic feedback on EXAMPLE_EVALUATE1](#roman_baryonic_feedback)
+2. [Running ML emulators](#roman_examples_emul)
+3. [Running Hybrid Cosmolike-ML emulators](#roman_examples_emul2)
+4. [Training Roman ML emulators](#roman_train__emul)
+5. [Unit tests](#unit_tests)
+
 # Running ML emulators <a name="roman_examples_emul"></a>
 
 Cocoa contains a few transformer- and CNN-based neural network emulators capable of simulating the CMB, cosmolike outputs, matter power spectrum, and distances. We provide a few scripts that exemplify their API. To run them, users ensure the following lines are commented out in `set_installation_options.sh` before running the `setup_cocoa.sh` and `compile_cocoa.sh`. By default, these lines should be commented out, but it is worth checking.
@@ -636,7 +644,7 @@ The repository `emulators_code` provides the script `dataset_generator_lensing.p
 
  
 
-# Unit tests
+# Unit tests <a name="unit_tests"></a>
 
 The `tests/` folder holds unit tests for the likelihoods of this
 project: they compare each likelihood against stored reference
