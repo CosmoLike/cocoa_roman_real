@@ -385,10 +385,11 @@ theory:
       use_syren: False
       param_order: ["As_1e9", "ns", "H0", "omegab", "omegam", 'w', 'wa']
 #  Warning: keep the fastpt accuracyboost at 640 or above under
-#  TATT with IA_code: 1. At the shipped boost 1, the FAST-PT and
-#  cfastpt data vectors differ by up to delta chi2 = 2248 across
-#  the intrinsic-alignment prior (see tests/README.md, test
-#  16, for the convergence table).
+#  TATT with IA_code: 1. The default fastpt settings hold accuracy
+#  only on a restricted region of the TATT prior; across the entire
+#  prior the FAST-PT and cfastpt data vectors differ by up to delta
+#  chi2 = 2248 (see tests/README.md, test 16, for the
+#  convergence table).
 #  fastpt:
 #    path: ./external_modules/code/FAST-PT
 #    extra_args:
