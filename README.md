@@ -672,21 +672,46 @@ are quoted here: rerun the checks to measure them on the current
 code, and see [tests/README.md](tests/README.md) for each check,
 the settings raised, and what each setting controls.
 
-### FAST-PT settings under `IA_code: 1`
+## FAST-PT accuracy for TATT (`IA_code: 1`) <a name="fastpt_accuracy"></a>
 
-The example yamls' commented `fastpt` block recommends
-`accuracyboost: 640`. At the shipped FAST-PT grid, the
-python FAST-PT and the C cfastpt implementations of the TATT
-perturbation-theory integrals disagree by up to
-$\Delta\chi^2 = 2248$ on the cosmic-shear data
-vector across the intrinsic-alignment prior, and the disagreement
-falls as a power law with the FAST-PT grid boost, crossing the 0.2
-band at 640. Unit test 16 pins the comparison;
-[tests/README.md](tests/README.md#cfastpt_fastpt) carries the
-convergence table.
+Cosmolike computes the TATT perturbation-theory integrals with two
+implementations: cfastpt, the C code inside the compiled interface
+(`IA_code: 0`, the default), and the python FAST-PT package through
+the fastpt theory block (`IA_code: 1`). Unit test 16 compares them
+at 30 fixed points across the intrinsic-alignment prior: at every
+point both implementations write their theory vector, and
+$\Delta\chi^2$ is the $\chi^2$ of the FAST-PT vector against the
+cfastpt vector through this project's masked inverse covariance,
+zero for identical predictions.
+
+At FAST-PT's shipped grid the implementations disagree by up to
+$\Delta\chi^2 = 2248$ across the prior. The
+disagreement is FAST-PT grid error: it falls as a power law with the
+fastpt `accuracyboost` and crosses the 0.2 band at 640,
+the minimum the example yamls recommend.
+
+| FAST-PT grid boost | max $\Delta\chi^2$ | median $\Delta\chi^2$ | cost per cosmology |
+|---|---|---|---|
+| 1 (shipped default) | 2248 | 7.19 | 1.2 s |
+| 20 | 113.9 | 0.36 | 1.3 s |
+| 40 | 34.6 | 0.111 | 1.9 s |
+| 80 | 9.63 | 0.031 | 2.8 s |
+| 160 | 2.57 | 0.0082 | 3.0 s |
+| 320 | 0.68 | 0.0022 | 7.2 s |
+| 640 (recommended minimum) | 0.187 | 0.00064 | 16 s |
+
+![The 30 comparison points, colored by the per-point difference](tests/cfastpt_vs_fastpt_points.png)
 
 > [!Warning]
 > Do not lower the fastpt `accuracyboost` below 640 in a
-> TATT analysis with `IA_code: 1`. Production analyses use cfastpt
-> (`IA_code: 0`), the converged and faster reference.
+> TATT analysis with `IA_code: 1`: the tidal-torquing and
+> $b_{\rm TA}$ convolution terms are under-resolved at the shipped
+> grid.
+
+> [!NOTE]
+> Production TATT analyses use cfastpt (`IA_code: 0`): it is the
+> converged reference (FAST-PT approaches it monotonically as its
+> grid refines) and the fastest.
+> [tests/README.md](tests/README.md#cfastpt_fastpt) carries the
+> test, the convergence details, and the parameter attribution.
 
