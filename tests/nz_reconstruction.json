@@ -1,0 +1,467 @@
+{
+  "project": "roman_real",
+  "example": "example2",
+  "alignment": "NLA",
+  "integration_accuracy": 6,
+  "accuracyboost": 1.0,
+  "histogram_preparation_factor": 3,
+  "input_control": "unchanged frozen histograms; no clipping or resampling in the test",
+  "input_files": {
+    "source_file": {
+      "name": "example1.nz",
+      "sha256": "142a7068e93e432cad126c8d21b0285988210fd6e7d44fe2a4868f6d8c3576b6"
+    },
+    "lens_file": {
+      "name": "example1.nz",
+      "sha256": "142a7068e93e432cad126c8d21b0285988210fd6e7d44fe2a4868f6d8c3576b6"
+    },
+    "cov_file": {
+      "name": "example1_cov",
+      "sha256": "e279f38c1c415b4866b39d330191e33c319f508f2ac5798592833947aa237cd1"
+    },
+    "mask_file": {
+      "name": "example1.mask",
+      "sha256": "de63095b81c2cb01e94a5e6628c0c52b5925d4cc6917239fc79371b462063779"
+    },
+    "data_vector_file": {
+      "name": "example1.modelvector",
+      "sha256": "52afec9bcb4b0073a688dbee0c79e5bb56dd3b2eb0081850dfa2366f5a3717e3"
+    }
+  },
+  "point": {
+    "As_1e9": 2.1,
+    "H0": 67.32,
+    "mnu": 0.06,
+    "ns": 0.96605,
+    "omegab": 0.04,
+    "omegam": 0.3,
+    "roman_A1_1": 0.6,
+    "roman_A1_2": -1.5,
+    "roman_A2_1": 0.0,
+    "roman_A2_2": -1.51541,
+    "roman_B1_1": 1.18,
+    "roman_B1_2": 1.4,
+    "roman_B1_3": 1.55,
+    "roman_B1_4": 1.71,
+    "roman_B1_5": 1.9,
+    "roman_B1_6": 2.15,
+    "roman_B1_7": 2.52,
+    "roman_B1_8": 2.44,
+    "roman_BTA_1": 0.0,
+    "roman_DZ_S1": 0.0,
+    "roman_DZ_S2": 0.0,
+    "roman_DZ_S3": 0.0,
+    "roman_DZ_S4": 0.0,
+    "roman_DZ_S5": 0.0,
+    "roman_DZ_S6": 0.0,
+    "roman_DZ_S7": 0.0,
+    "roman_DZ_S8": 0.0,
+    "roman_M1": 0.0,
+    "roman_M2": 0.0,
+    "roman_M3": 0.0,
+    "roman_M4": 0.0,
+    "roman_M5": 0.0,
+    "roman_M6": 0.0,
+    "roman_M7": 0.0,
+    "roman_M8": 0.0,
+    "w": -1.0,
+    "w0pwa": -1.0
+  },
+  "delta_chi2": 0.25394759280975737,
+  "chi2_to_data_original": 0.07717723460874465,
+  "chi2_to_data_akima": 0.33882850797020947,
+  "full_vector_size": 2115,
+  "selected_vector_size": 1950,
+  "physical_covariance": true,
+  "default_roundtrip_bitwise_equal": true,
+  "yaml_and_live_selection_bitwise_equal": true,
+  "inverse_covariance_unchanged": true,
+  "probability_audit": {
+    "final_grid_factor": 5,
+    "shift": 0,
+    "lens_stretch": 1,
+    "rows": [
+      {
+        "sample": "source",
+        "arm": "original",
+        "tomographic_bin": 1,
+        "total_area": 1.0000036234613765,
+        "total_area_error_pct": 0.0003623461376500714,
+        "bin_redistribution_pct": 0.015783015443330464,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.3877787807814457e-17
+      },
+      {
+        "sample": "source",
+        "arm": "original",
+        "tomographic_bin": 2,
+        "total_area": 0.9999999999667654,
+        "total_area_error_pct": -3.3234637264456524e-09,
+        "bin_redistribution_pct": 0.022636321374251128,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 2.0816681711721685e-17
+      },
+      {
+        "sample": "source",
+        "arm": "original",
+        "tomographic_bin": 3,
+        "total_area": 1.0000000000619242,
+        "total_area_error_pct": 6.192424351070258e-09,
+        "bin_redistribution_pct": 0.01946303160850915,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 2.0816681711721685e-17
+      },
+      {
+        "sample": "source",
+        "arm": "original",
+        "tomographic_bin": 4,
+        "total_area": 1.0000000000111324,
+        "total_area_error_pct": 1.113242831252137e-09,
+        "bin_redistribution_pct": 0.016328798550592376,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.3877787807814457e-17
+      },
+      {
+        "sample": "source",
+        "arm": "original",
+        "tomographic_bin": 5,
+        "total_area": 0.9999999999620736,
+        "total_area_error_pct": -3.7926439766522435e-09,
+        "bin_redistribution_pct": 0.012597279047361281,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.3877787807814457e-17
+      },
+      {
+        "sample": "source",
+        "arm": "original",
+        "tomographic_bin": 6,
+        "total_area": 1.0000000000101508,
+        "total_area_error_pct": 1.0150769114147806e-09,
+        "bin_redistribution_pct": 0.008814533659413749,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.3877787807814457e-17
+      },
+      {
+        "sample": "source",
+        "arm": "original",
+        "tomographic_bin": 7,
+        "total_area": 0.999999999996079,
+        "total_area_error_pct": -3.9209746560686654e-10,
+        "bin_redistribution_pct": 0.00508244261352451,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.0408340855860843e-17
+      },
+      {
+        "sample": "source",
+        "arm": "original",
+        "tomographic_bin": 8,
+        "total_area": 0.9996768137944593,
+        "total_area_error_pct": -0.03231862055407264,
+        "bin_redistribution_pct": 0.03218418482527676,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 3.469446951953614e-18
+      },
+      {
+        "sample": "lens",
+        "arm": "original",
+        "tomographic_bin": 1,
+        "total_area": 1.0000036234613765,
+        "total_area_error_pct": 0.0003623461376500714,
+        "bin_redistribution_pct": 0.015783015443330342,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.3877787807814457e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "original",
+        "tomographic_bin": 2,
+        "total_area": 0.9999999999667654,
+        "total_area_error_pct": -3.3234637264456524e-09,
+        "bin_redistribution_pct": 0.022636321374251128,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 2.0816681711721685e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "original",
+        "tomographic_bin": 3,
+        "total_area": 1.0000000000619242,
+        "total_area_error_pct": 6.192424351070258e-09,
+        "bin_redistribution_pct": 0.01946303160850915,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 2.0816681711721685e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "original",
+        "tomographic_bin": 4,
+        "total_area": 1.0000000000111324,
+        "total_area_error_pct": 1.113242831252137e-09,
+        "bin_redistribution_pct": 0.016328798550592376,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.3877787807814457e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "original",
+        "tomographic_bin": 5,
+        "total_area": 0.9999999999620736,
+        "total_area_error_pct": -3.7926439766522435e-09,
+        "bin_redistribution_pct": 0.012597279047361281,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.3877787807814457e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "original",
+        "tomographic_bin": 6,
+        "total_area": 1.0000000000101508,
+        "total_area_error_pct": 1.0150769114147806e-09,
+        "bin_redistribution_pct": 0.008814533659413749,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.3877787807814457e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "original",
+        "tomographic_bin": 7,
+        "total_area": 0.999999999996079,
+        "total_area_error_pct": -3.9209746560686654e-10,
+        "bin_redistribution_pct": 0.00508244261352451,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.0408340855860843e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "original",
+        "tomographic_bin": 8,
+        "total_area": 0.9996768137944593,
+        "total_area_error_pct": -0.03231862055407264,
+        "bin_redistribution_pct": 0.03218418482527676,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 3.469446951953614e-18
+      },
+      {
+        "sample": "source",
+        "arm": "akima",
+        "tomographic_bin": 1,
+        "total_area": 1.0000000000000004,
+        "total_area_error_pct": 4.440892098500626e-14,
+        "bin_redistribution_pct": 0.010940874579242641,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.3877787807814457e-17
+      },
+      {
+        "sample": "source",
+        "arm": "akima",
+        "tomographic_bin": 2,
+        "total_area": 1.0,
+        "total_area_error_pct": 0.0,
+        "bin_redistribution_pct": 0.01670640984744551,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 2.0816681711721685e-17
+      },
+      {
+        "sample": "source",
+        "arm": "akima",
+        "tomographic_bin": 3,
+        "total_area": 1.000000000000001,
+        "total_area_error_pct": 1.1102230246251565e-13,
+        "bin_redistribution_pct": 0.014379594544783545,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 2.0816681711721685e-17
+      },
+      {
+        "sample": "source",
+        "arm": "akima",
+        "tomographic_bin": 4,
+        "total_area": 1.0000000000000004,
+        "total_area_error_pct": 4.440892098500626e-14,
+        "bin_redistribution_pct": 0.012064152113021944,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 2.0816681711721685e-17
+      },
+      {
+        "sample": "source",
+        "arm": "akima",
+        "tomographic_bin": 5,
+        "total_area": 1.0000000000000002,
+        "total_area_error_pct": 2.220446049250313e-14,
+        "bin_redistribution_pct": 0.009310441191279321,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 2.42861286636753e-17
+      },
+      {
+        "sample": "source",
+        "arm": "akima",
+        "tomographic_bin": 6,
+        "total_area": 1.0000000000000009,
+        "total_area_error_pct": 8.881784197001252e-14,
+        "bin_redistribution_pct": 0.006531721988234183,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.734723475976807e-17
+      },
+      {
+        "sample": "source",
+        "arm": "akima",
+        "tomographic_bin": 7,
+        "total_area": 1.000000000000001,
+        "total_area_error_pct": 1.1102230246251565e-13,
+        "bin_redistribution_pct": 0.0038127611690260857,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.0408340855860843e-17
+      },
+      {
+        "sample": "source",
+        "arm": "akima",
+        "tomographic_bin": 8,
+        "total_area": 1.0000000000000004,
+        "total_area_error_pct": 4.440892098500626e-14,
+        "bin_redistribution_pct": 0.001302126065527151,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 7.806255641895632e-18
+      },
+      {
+        "sample": "lens",
+        "arm": "akima",
+        "tomographic_bin": 1,
+        "total_area": 1.0000000000000004,
+        "total_area_error_pct": 4.440892098500626e-14,
+        "bin_redistribution_pct": 0.010940874579242641,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.3877787807814457e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "akima",
+        "tomographic_bin": 2,
+        "total_area": 1.0,
+        "total_area_error_pct": 0.0,
+        "bin_redistribution_pct": 0.01670640984744551,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 2.0816681711721685e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "akima",
+        "tomographic_bin": 3,
+        "total_area": 1.000000000000001,
+        "total_area_error_pct": 1.1102230246251565e-13,
+        "bin_redistribution_pct": 0.014379594544783545,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 2.0816681711721685e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "akima",
+        "tomographic_bin": 4,
+        "total_area": 1.0000000000000004,
+        "total_area_error_pct": 4.440892098500626e-14,
+        "bin_redistribution_pct": 0.012064152113021944,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 2.0816681711721685e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "akima",
+        "tomographic_bin": 5,
+        "total_area": 1.0000000000000002,
+        "total_area_error_pct": 2.220446049250313e-14,
+        "bin_redistribution_pct": 0.009310441191279321,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 2.42861286636753e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "akima",
+        "tomographic_bin": 6,
+        "total_area": 1.0000000000000009,
+        "total_area_error_pct": 8.881784197001252e-14,
+        "bin_redistribution_pct": 0.006531721988234183,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.734723475976807e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "akima",
+        "tomographic_bin": 7,
+        "total_area": 1.000000000000001,
+        "total_area_error_pct": 1.1102230246251565e-13,
+        "bin_redistribution_pct": 0.0038127611690260857,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 1.0408340855860843e-17
+      },
+      {
+        "sample": "lens",
+        "arm": "akima",
+        "tomographic_bin": 8,
+        "total_area": 1.0000000000000004,
+        "total_area_error_pct": 4.440892098500626e-14,
+        "bin_redistribution_pct": 0.001302126065527151,
+        "negative_input_cells": 0,
+        "two_vs_four_point_max_difference": 7.806255641895632e-18
+      }
+    ]
+  },
+  "refinement_2048_to_4096": {
+    "original": 2.6483750600625666e-06,
+    "akima": 8.281349932156884e-06,
+    "model_displacement": 1.2834601857890638e-05,
+    "level5_model_delta_chi2": 0.2531786042887263
+  },
+  "practical_accuracy": {
+    "reference_level": 6,
+    "criterion": "All three vector distances below 0.1; one frozen fiducial only",
+    "budget_delta_chi2": 0.1,
+    "physical_covariance": true,
+    "selected_level": 3,
+    "scan": [
+      {
+        "integration_accuracy": 0,
+        "original_vs_reference": 0.00039466558374632904,
+        "akima_vs_reference": 4.558365655925055,
+        "model_displacement_vs_reference": 4.563750684590472,
+        "model_delta_chi2": 4.992969214029147
+      },
+      {
+        "integration_accuracy": 1,
+        "original_vs_reference": 3.769330356291576e-05,
+        "akima_vs_reference": 2.2513544838302995,
+        "model_displacement_vs_reference": 2.254089307134512,
+        "model_delta_chi2": 2.3494962109440345
+      },
+      {
+        "integration_accuracy": 2,
+        "original_vs_reference": 6.076585530940395e-06,
+        "akima_vs_reference": 0.6478613165818737,
+        "model_displacement_vs_reference": 0.6475877368943553,
+        "model_delta_chi2": 0.9239794792631887
+      },
+      {
+        "integration_accuracy": 3,
+        "original_vs_reference": 1.6447001502315894e-05,
+        "akima_vs_reference": 0.033235105401973865,
+        "model_displacement_vs_reference": 0.03330669414697375,
+        "model_delta_chi2": 0.30459139251080575
+      },
+      {
+        "integration_accuracy": 4,
+        "original_vs_reference": 2.63478736996924e-05,
+        "akima_vs_reference": 0.0017569188434990942,
+        "model_displacement_vs_reference": 0.0017650716344066457,
+        "model_delta_chi2": 0.25622236011652333
+      }
+    ]
+  },
+  "provenance": {
+    "core_base_commit": "7d315a9",
+    "branch": "bugfix",
+    "implementation_sha256": {
+      "cosmolike/basics.c": "ead0b7ecf9d306ca8f3ecb8b684a172fff5d99e8533cea86095acae1ed9fc7d2",
+      "cosmolike/redshift_spline.c": "24e39f2faf902936e2fb4178b8eed9db079feda652dafebcba0b59cd7ed25443",
+      "cosmolike/structs.c": "59ac16f196f2f10cb8b7bb24b7cc3ef7b7b707a28a22afefe18852c6340e68ea",
+      "cosmolike/structs.h": "5df4824bcf3b5aed9243e97c0df3e0c95a2bd9279f14c5576ae955b98865f161",
+      "cosmolike/generic_interface.cpp": "4ded9ebfdba3741d14a3d8d33f27d796b575b24a4315c938d379f10bfe56d882"
+    }
+  }
+}
