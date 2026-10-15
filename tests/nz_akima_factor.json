@@ -1,0 +1,158 @@
+{
+  "project": "roman_real",
+  "example": "example2",
+  "point": {
+    "As_1e9": 2.1,
+    "H0": 67.32,
+    "mnu": 0.06,
+    "ns": 0.96605,
+    "omegab": 0.04,
+    "omegam": 0.3,
+    "roman_A1_1": 0.6,
+    "roman_A1_2": -1.5,
+    "roman_A2_1": 0.0,
+    "roman_A2_2": -1.51541,
+    "roman_B1_1": 1.18,
+    "roman_B1_2": 1.4,
+    "roman_B1_3": 1.55,
+    "roman_B1_4": 1.71,
+    "roman_B1_5": 1.9,
+    "roman_B1_6": 2.15,
+    "roman_B1_7": 2.52,
+    "roman_B1_8": 2.44,
+    "roman_BTA_1": 0.0,
+    "roman_DZ_S1": 0.0,
+    "roman_DZ_S2": 0.0,
+    "roman_DZ_S3": 0.0,
+    "roman_DZ_S4": 0.0,
+    "roman_DZ_S5": 0.0,
+    "roman_DZ_S6": 0.0,
+    "roman_DZ_S7": 0.0,
+    "roman_DZ_S8": 0.0,
+    "roman_M1": 0.0,
+    "roman_M2": 0.0,
+    "roman_M3": 0.0,
+    "roman_M4": 0.0,
+    "roman_M5": 0.0,
+    "roman_M6": 0.0,
+    "roman_M7": 0.0,
+    "roman_M8": 0.0,
+    "w": -1.0,
+    "w0pwa": -1.0
+  },
+  "input_files": {
+    "source_file": {
+      "name": "example1.nz",
+      "sha256": "142a7068e93e432cad126c8d21b0285988210fd6e7d44fe2a4868f6d8c3576b6"
+    },
+    "lens_file": {
+      "name": "example1.nz",
+      "sha256": "142a7068e93e432cad126c8d21b0285988210fd6e7d44fe2a4868f6d8c3576b6"
+    },
+    "cov_file": {
+      "name": "example1_cov",
+      "sha256": "e279f38c1c415b4866b39d330191e33c319f508f2ac5798592833947aa237cd1"
+    },
+    "mask_file": {
+      "name": "example1.mask",
+      "sha256": "de63095b81c2cb01e94a5e6628c0c52b5925d4cc6917239fc79371b462063779"
+    },
+    "data_vector_file": {
+      "name": "example1.modelvector",
+      "sha256": "52afec9bcb4b0073a688dbee0c79e5bb56dd3b2eb0081850dfa2366f5a3717e3"
+    }
+  },
+  "accuracyboost": 1.0,
+  "physical_covariance": true,
+  "reference_integration_accuracy": 6,
+  "pairwise_delta_chi2": {
+    "original_to_three": 0.2539475928097576,
+    "original_to_five": 0.25704563388413837,
+    "original_to_seven": 0.2691800841736911,
+    "three_to_five": 0.0054150203802305836,
+    "three_to_seven": 0.010006572705984127,
+    "five_to_seven": 0.0010436886369974419
+  },
+  "practical_levels": {
+    "three": 3,
+    "five": 4,
+    "seven": 4
+  },
+  "quadrature_scans": {
+    "five": [
+      {
+        "integration_accuracy": 5,
+        "five_numerical_delta_chi2": 5.434837411493852e-05,
+        "distance_to_refined_three": 0.005442873293534799,
+        "three_to_five_at_level5": 0.005454377612340696,
+        "model_displacement_refinement_delta_chi2": 8.186809374518838e-05
+      },
+      {
+        "integration_accuracy": 0,
+        "five_numerical_delta_chi2": 5.79648319890994,
+        "distance_to_refined_three": 5.813498563504352
+      },
+      {
+        "integration_accuracy": 1,
+        "five_numerical_delta_chi2": 3.964829836385101,
+        "distance_to_refined_three": 3.9790935872306736
+      },
+      {
+        "integration_accuracy": 2,
+        "five_numerical_delta_chi2": 1.3043025527551217,
+        "distance_to_refined_three": 1.3012670208345463
+      },
+      {
+        "integration_accuracy": 3,
+        "five_numerical_delta_chi2": 0.15243312242944884,
+        "distance_to_refined_three": 0.15827713989800443
+      },
+      {
+        "integration_accuracy": 4,
+        "five_numerical_delta_chi2": 0.00901285350520071,
+        "distance_to_refined_three": 0.015270477205741735
+      }
+    ],
+    "seven": [
+      {
+        "integration_accuracy": 5,
+        "seven_numerical_delta_chi2": 0.00023134508966483845,
+        "distance_to_refined_three": 0.010192298984839334,
+        "three_to_seven_at_level5": 0.010236806929649643,
+        "model_displacement_refinement_delta_chi2": 0.00029074205076893374
+      },
+      {
+        "integration_accuracy": 0,
+        "seven_numerical_delta_chi2": 7.026651831264737,
+        "distance_to_refined_three": 7.067710998251109
+      },
+      {
+        "integration_accuracy": 1,
+        "seven_numerical_delta_chi2": 4.588623007081422,
+        "distance_to_refined_three": 4.602118930715672
+      },
+      {
+        "integration_accuracy": 2,
+        "seven_numerical_delta_chi2": 1.442138033729725,
+        "distance_to_refined_three": 1.4441312666959076
+      },
+      {
+        "integration_accuracy": 3,
+        "seven_numerical_delta_chi2": 0.2744599871709579,
+        "distance_to_refined_three": 0.28833450218339907
+      },
+      {
+        "integration_accuracy": 4,
+        "seven_numerical_delta_chi2": 0.022976598193858232,
+        "distance_to_refined_three": 0.0345221110257813
+      }
+    ]
+  },
+  "budget_delta_chi2": 0.1,
+  "checks": {
+    "three_reference_bitwise_unchanged": true,
+    "roundtrips_3_5_3_and_3_7_3_bitwise": true,
+    "fresh_yaml_matches_live": true,
+    "inverse_covariance_unchanged": true
+  }
+}
