@@ -28,8 +28,6 @@ same.
     10. [The non-Limber galaxy clustering check](#nonlimber_gg)
     11. [The sector-ladder cache check](#cache_ladder)
     12. [The halo-model checks](#halo_checks)
-    13. [Histogram reconstruction comparison](#nz-reconstruction)
-    14. [Three-, five- and seven-point Akima](#nz-akima-factor)
 3. [Appendix](#appendix)
     1. [FAQ: Do the tests keep their own data?](#frozen_copy)
     2. [FAQ: Why do the TATT tests use their own data vector?](#synthetic_vectors)
@@ -633,18 +631,6 @@ the script `start_cocoa.sh`
 **Step :three:**: run every halo-model check, the slow ones included
 
     COCOA_HALO_SLOW=1 python -m pytest ./projects/roman_real/tests/data_vector/test_halo*.py ./projects/roman_real/tests/data_vector/test_hod_cell.py
-
-<a name="nz-reconstruction"></a>
-<a name="nz-akima-factor"></a>
-### Optional n(z) reconstruction study
-
-The [manual study](../studies/README.md) compares the original cubic with
-fixed 3-, 5- and 7-point histogram preparation followed by Akima. It measures
-sensitivity to the interpretation of the input histogram, rather than
-agreement with a frozen output vector. It is **excluded from ordinary pytest discovery**.
-The study also compares the original reconstruction at default numerical
-settings with its refined calculation, using the same physical inputs.
-
 
 ## :interrobang: FAQ: Do the tests keep their own data? <a name="frozen_copy"></a>
 
