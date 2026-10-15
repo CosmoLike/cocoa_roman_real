@@ -750,16 +750,37 @@ These pairwise squared distances are not additive.
 | 3 → 7 | 0.0100066 |
 | 5 → 7 | 0.00104369 |
 
-The numerical budget for the example test is $\Delta\chi^2 < 0.1$ against the saved
-level-6 vector, at this fiducial. That budget is separate from the
-model distances above; use level 6 to reproduce those refined measurements.
-It is not a claim of convergence throughout parameter space or for covariance
-construction. No likelihood integration default is changed.
+All three preparation factors now use **integration level 5** in
+this comparison test: one level above the initial five/seven-point
+selection. Using a common rule reduces unequal numerical errors when
+comparing the small model differences. The original-versus-three-point
+test above retains its separately documented setting.
 
-| Preparation | Practical level | Numerical $\Delta\chi^2$ vs level 6 | 2048→4096 numerical $\Delta\chi^2$ |
-|---|---:|---:|---:|
-| 5 points | 4 | 0.00901285 | 5.43484e-05 |
-| 7 points | 4 | 0.0229766 | 0.000231345 |
+The first table measures each model's numerical error against its own
+level-6 vector; the second measures the differences between models.
+The existing 0.1 test ceiling remains a regression guard, not evidence
+that numerical error is negligible relative to every model difference.
+Use the refined columns when judging the sequence of reconstructions.
+No likelihood integration default is changed.
+
+| Preparation | Common test level | Numerical $\Delta\chi^2$ vs level 6 |
+|---|---:|---:|
+| 3 points | 5 | 8.28135e-06 |
+| 5 points | 5 | 5.43484e-05 |
+| 7 points | 5 | 0.000231345 |
+
+| Reconstruction comparison | Raised-level $\Delta\chi^2$ | Level-6 $\Delta\chi^2$ |
+|---|---:|---:|
+| 3 → 5 | 0.00545438 | 0.00541502 |
+| 3 → 7 | 0.0102368 | 0.0100066 |
+| 5 → 7 | 0.00114732 | 0.00104369 |
+
+The [raised-level vectors](../nz_akima_factor_raised.npz) and
+[record](../nz_akima_factor.json) retain these measurements, including
+the numerical error in each pairwise displacement. Both factor tests
+give the same three-point vector bitwise and match the independent
+earlier five/seven-point scans bitwise. These are fixed-fiducial
+data-vector checks; covariance generation needs separate validation.
 
 We assume the shell is bash, the Conda Cocoa environment is active, and the
 current directory is `Cocoa/`.
@@ -770,7 +791,7 @@ current directory is `Cocoa/`.
 source start_cocoa.sh
 ```
 
-**Step :two:**: Run both factor comparisons at their measured practical levels.
+**Step :two:**: Run both factor comparisons at their raised common level.
 
 ```bash
 python -m pytest -s projects/roman_real/tests/data_vector/test_nz_akima_factor.py
