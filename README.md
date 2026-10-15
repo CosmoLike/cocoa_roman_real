@@ -12,8 +12,6 @@
 
 ## Running Cosmolike projects (Basic instructions) <a name="roman_running_cosmolike_projects"></a> 
 
-Also see the documentation for [external baryonic feedback](#roman_baryonic_feedback).
-
 From `Cocoa/Readme` instructions:
 
 > [!Note]
