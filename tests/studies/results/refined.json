@@ -1,0 +1,84 @@
+{
+  "project": "roman_real",
+  "part": "refined",
+  "point": {
+    "As_1e9": 2.1,
+    "H0": 67.32,
+    "mnu": 0.06,
+    "ns": 0.96605,
+    "omegab": 0.04,
+    "omegam": 0.3,
+    "roman_A1_1": 0.6,
+    "roman_A1_2": -1.5,
+    "roman_A2_1": 0.0,
+    "roman_A2_2": -1.51541,
+    "roman_B1_1": 1.18,
+    "roman_B1_2": 1.4,
+    "roman_B1_3": 1.55,
+    "roman_B1_4": 1.71,
+    "roman_B1_5": 1.9,
+    "roman_B1_6": 2.15,
+    "roman_B1_7": 2.52,
+    "roman_B1_8": 2.44,
+    "roman_BTA_1": 0.0,
+    "roman_DZ_S1": 0.0,
+    "roman_DZ_S2": 0.0,
+    "roman_DZ_S3": 0.0,
+    "roman_DZ_S4": 0.0,
+    "roman_DZ_S5": 0.0,
+    "roman_DZ_S6": 0.0,
+    "roman_DZ_S7": 0.0,
+    "roman_DZ_S8": 0.0,
+    "roman_M1": 0.0,
+    "roman_M2": 0.0,
+    "roman_M3": 0.0,
+    "roman_M4": 0.0,
+    "roman_M5": 0.0,
+    "roman_M6": 0.0,
+    "roman_M7": 0.0,
+    "roman_M8": 0.0,
+    "w": -1.0,
+    "w0pwa": -1.0
+  },
+  "input_files": {
+    "source_file": {
+      "name": "example1.nz",
+      "sha256": "142a7068e93e432cad126c8d21b0285988210fd6e7d44fe2a4868f6d8c3576b6"
+    },
+    "lens_file": {
+      "name": "example1.nz",
+      "sha256": "142a7068e93e432cad126c8d21b0285988210fd6e7d44fe2a4868f6d8c3576b6"
+    },
+    "cov_file": {
+      "name": "example1_cov",
+      "sha256": "e279f38c1c415b4866b39d330191e33c319f508f2ac5798592833947aa237cd1"
+    },
+    "mask_file": {
+      "name": "example1.mask",
+      "sha256": "de63095b81c2cb01e94a5e6628c0c52b5925d4cc6917239fc79371b462063779"
+    },
+    "data_vector_file": {
+      "name": "example1.modelvector",
+      "sha256": "52afec9bcb4b0073a688dbee0c79e5bb56dd3b2eb0081850dfa2366f5a3717e3"
+    }
+  },
+  "accuracyboost": 5.0,
+  "integration_accuracy": 7,
+  "defaults_yaml_sha256": "ead9169a5016fa3270f067732c5201a5a26d2984db568fc05d3921860d04ae0b",
+  "interface_sha256": "4f09ed5c718092b70031ae8680f66edf1c2b5dec4fbef5473fb85f468199ddea",
+  "study_sha256": "ec356f5fe96ce3c418449392057aba238f77378e798274e807d4f70ff95d821c",
+  "delta_chi2": {
+    "original_to_three": 0.040987625093305134,
+    "three_to_five": 0.0032178791829781937,
+    "three_to_seven": 0.004495904038841715,
+    "five_to_seven": 0.0002784491647022553
+  },
+  "elapsed_seconds": 34.82283941691276,
+  "thread_environment": {
+    "OMP_NUM_THREADS": "8",
+    "OPENBLAS_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "VECLIB_MAXIMUM_THREADS": "1"
+  },
+  "inverse_covariance_sha256": "dd3892ae3335c1e782ca9f93b905c9eb323521c1a6b7a52e4fa49b43589bfa83"
+}

@@ -166,7 +166,8 @@
     "numerical_delta_chi2": {
       "three": 8.281349932156818e-06,
       "five": 5.434837411493849e-05,
-      "seven": 0.0002313450896648378
+      "seven": 0.0002313450896648378,
+      "original": 2.6483750600625594e-06
     },
     "pairwise": {
       "three_to_five": {
@@ -183,6 +184,11 @@
         "raised_delta_chi2": 0.0011473196319457828,
         "reference_delta_chi2": 0.0010436886369974419,
         "displacement_error_delta_chi2": 0.00012243274855536392
+      },
+      "original_to_three": {
+        "raised_delta_chi2": 0.25317860428872896,
+        "reference_delta_chi2": 0.2539475928097576,
+        "displacement_error_delta_chi2": 1.2834601857890665e-05
       }
     },
     "tests": {
@@ -196,6 +202,12 @@
     "vector_sha256": {
       "5": "f9cea44150f832969fbaaada7cdbc176ccf41e6d695c9dff873cdfceb74eb590",
       "7": "7302a0cc149c31edce2912c681ad9bb675ca9b272e9cf35215cf553ca6b22091"
+    },
+    "original_vector_source": {
+      "project": "roman_real",
+      "level": 5,
+      "status": "reused",
+      "source": "/Users/vivianmiranda/data/COCOA/september2026/test/nz_akima_yaml/results/roman_real_level5.npz"
     }
   }
 }

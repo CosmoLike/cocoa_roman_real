@@ -1,0 +1,21 @@
+{
+  "project": "roman_real",
+  "default_accuracyboost": 1.0,
+  "default_integration_accuracy": 0,
+  "refined_accuracyboost": 5.0,
+  "refined_integration_accuracy": 7,
+  "original_default_to_refined": 0.013626538630661475,
+  "reconstruction_distances": {
+    "original_to_three": 0.040987625093305134,
+    "three_to_five": 0.0032178791829781937,
+    "three_to_seven": 0.004495904038841715,
+    "five_to_seven": 0.0002784491647022553
+  },
+  "redshift_moment_refinement_delta_chi2": {
+    "original": 9.902799186445023e-26,
+    "three": 8.904378916429642e-17,
+    "five": 6.739873264132512e-16,
+    "seven": 1.775457549981417e-15
+  },
+  "default_vector_unchanged_bitwise": true
+}
