@@ -635,6 +635,8 @@ the script `start_cocoa.sh`
 
     COCOA_HALO_SLOW=1 python -m pytest ./projects/roman_real/tests/data_vector/test_halo*.py ./projects/roman_real/tests/data_vector/test_hod_cell.py
 
+## Appendix <a name="appendix"></a>
+
 ## :interrobang: FAQ: Do the tests keep their own data? <a name="frozen_copy"></a>
 
 The tests read nothing from the live project: not `../data`, not the
