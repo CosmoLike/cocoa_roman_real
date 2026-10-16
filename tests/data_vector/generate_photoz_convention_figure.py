@@ -1,22 +1,12 @@
-"""Regenerate the photo-z convention figures the tests README shows.
+"""Regenerate the photo-z convention figures stored in tests/data_vector/.
 
-Evaluates the frozen cosmic-shear fiducial under the four runtime
-photo-z settings (cspline/Z_LOW default, linear, Steffen, Z_MID; see
-test_photoz_conventions.py for what they mean) and plots the
-fractional data-vector differences against the default,
-
-    delta xi/xi = xi(setting)/xi(default) - 1,
-
-per tomographic pair and per angular bin, for xi_plus (solid) and
-xi_minus (dashed). Masked angular bins are left out. Two figures,
-because the two knobs live on different scales:
-
-    photoz_zmid_dxi.png:   the Z_LOW vs Z_MID reading of the n(z)
-                           file z column (percent level),
-    photoz_interp_dxi.png: linear and Steffen vs cubic spline
-                           (1e-4 level).
-
-Both are written next to this file, in tests/data_vector/.
+The machinery and its documentation live in
+cosmolike_core/cocoa_testing_figures.py (photoz_convention_figures):
+the frozen cosmic-shear fiducial is evaluated under the four runtime
+photo-z settings and the fractional data-vector differences against
+the default are plotted per tomographic pair. This script keeps the
+survey data: the binning, the scale-cut mask of the frozen contract,
+and the panel grid.
 
 To run (from the Cocoa/ folder, cocoa environment active,
 start_cocoa.sh sourced):
@@ -26,161 +16,33 @@ start_cocoa.sh sourced):
 
 import os
 
-# OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so it
-# is set before any cobaya/cosmolike import.
+# OpenMP reads OMP_NUM_THREADS when the compiled libraries load, so
+# this must run before any cobaya/cosmolike import in the process
+# (4 threads, the count the frozen references were generated with)
 os.environ["OMP_NUM_THREADS"] = "4"
 
 import sys
-import shutil
-import tempfile
 
-import matplotlib
-# Agg draws into image files only (no window), so the script also runs
-# without a display; it must be chosen before pyplot is imported.
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import numpy as np
-
-# Figures belong beside these data-vector checks. The shared harness and
-# frozen inputs remain one folder above, in tests/. Resolve both from
-# this script so it can be launched from any working directory.
+# Figures belong beside these data-vector checks. The shared harness
+# and frozen inputs remain one folder above, in tests/. Resolve both
+# from this script so it can be launched from any working directory.
 FIGURES = os.path.dirname(os.path.abspath(__file__))
 TESTS = os.path.dirname(FIGURES)
 sys.path.insert(0, TESTS)
 import cocoa_test_utils as u
 
-# The frozen example1 layout: 8 source bins, 15 angular bins between 2.5
-# and 250 arcmin, and its scale-cut mask.
-EXAMPLE = "example1"
-NTOMO = 8
-NTHETA = 15
-THETA_MIN, THETA_MAX = 2.5, 250.0
-MASK_FILE = os.path.join(TESTS,
-                         "frozen", "data",
-                         "example1.mask")
-
-SETTINGS = (("cspline/Z_LOW (default)", 0, 0), ("linear", 1, 0),
-            ("steffen", 2, 0), ("Z_MID", 0, 1))
-
-
-def datavectors():
-    """Return the printed theory vector under each setting, keyed by tag.
-
-    Each setting builds a new model whose likelihood prints its theory
-    vector into a temporary folder, removed in the finally block.
-    """
-    vectors_dir = tempfile.mkdtemp(prefix="photoz_conventions_fig_")
-    out = {}
-    try:
-        for tag, interp, zmid in SETTINGS:
-            print(f"building model ({EXAMPLE}, NLA, {tag}) ...", flush=True)
-            info = u.load_frozen_info(EXAMPLE, tatt=False)
-            block = info["likelihood"][u.EXAMPLES[EXAMPLE]["likelihood"]]
-            block["photoz_interpolation_type"] = interp
-            block["photoz_zmid_convention"] = zmid
-            path = os.path.join(vectors_dir, f"dv_{interp}_{zmid}.modelvector")
-            block["print_datavector"] = True
-            block["print_datavector_file"] = path
-            model = u.make_model(info)
-            point = u.build_point(model, EXAMPLE, tatt=False)
-            u.evaluate_chi2(model, point)
-            out[tag] = u._load_datavector(path)
-    finally:
-        shutil.rmtree(vectors_dir, ignore_errors=True)
-    return out
-
-
-def plot(curves, fname, title, scale=100.0, unit="%", ylim=None):
-    """Draw a 6 x 6 grid with one panel per source-bin pair and save it.
-
-    The 36 pairs (i <= j) of the 8 source bins fill the grid in order;
-    each panel shows every curve's xi_plus (solid) and xi_minus
-    (dashed) fractional difference, multiplied by scale.
-
-    Arguments:
-      curves = {label: (dxi_plus, dxi_minus)}, each a (npair, NTHETA)
-               fractional-difference array with NaN at masked bins
-      fname  = the PNG file name, written next to this script
-      title  = the figure title
-      scale  = factor applied to the differences (100 = percent)
-      unit   = the unit text of the y label
-      ylim   = symmetric y range (-ylim, ylim), or None for automatic
-
-    Side effects: writes fname and prints its name.
-    """
-    # area-weighted centers of the log-spaced angular bins:
-    # 2/3 (t_max^3 - t_min^3)/(t_max^2 - t_min^2)
-    theta = np.geomspace(THETA_MIN, THETA_MAX, NTHETA + 1)
-    theta = (2.0 / 3.0) * (theta[1:]**3 - theta[:-1]**3) \
-                        / (theta[1:]**2 - theta[:-1]**2)
-    pairs = [(i, j) for i in range(NTOMO) for j in range(i, NTOMO)]
-    fig, axes = plt.subplots(nrows=6, ncols=6, figsize=(20, 16),
-                             sharex=True, sharey=True,
-                             gridspec_kw={"wspace": 0, "hspace": 0})
-    cm = plt.get_cmap("gist_rainbow")
-    for p, (i, j) in enumerate(pairs):
-        ax = axes.ravel()[p]
-        for q, (label, (dp, dm)) in enumerate(curves.items()):
-            color = cm(q / max(len(curves) - 1, 1) * 0.8)
-            ax.semilogx(theta, scale * dp[p], color=color, lw=1.6,
-                        label=rf"$\xi_+$: {label}" if p == 0 else None)
-            ax.semilogx(theta, scale * dm[p], color=color, lw=1.6, ls="--",
-                        label=rf"$\xi_-$: {label}" if p == 0 else None)
-        ax.axhline(0.0, color="k", lw=0.5)
-        ax.text(0.08, 0.85, f"$({i+1},{j+1})$", transform=ax.transAxes,
-                fontsize=15)
-        if p >= 30:
-            ax.set_xlabel(r"$\theta$ [arcmin]", fontsize=16)
-        if p % 6 == 0:
-            ax.set_ylabel(rf"$\Delta\xi_\pm/\xi_\pm$ [{unit}]", fontsize=16)
-    if ylim is not None:
-        # fractional differences blow up where xi_plus crosses zero at
-        # the largest angles; a fixed range keeps the flat offsets,
-        # which are the physics, readable (the spikes run off-panel)
-        axes.ravel()[0].set_ylim(-ylim, ylim)
-    axes.ravel()[0].legend(fontsize=9, loc="lower left")
-    fig.suptitle(title, fontsize=17)
-    fig.savefig(os.path.join(FIGURES,
-                             fname), dpi=120, bbox_inches="tight")
-    plt.close(fig)
-    print(f"wrote {fname}")
-
-
-def main():
-    """Evaluate the four settings and write the two figures."""
-    u.require_cocoa_environment()
-    u.verify_frozen()
-    dv = datavectors()
-
-    mask = np.loadtxt(MASK_FILE)
-    mask = mask[:, 1] if mask.ndim == 2 else mask
-    npair = NTOMO * (NTOMO + 1) // 2
-    nxi = npair * NTHETA
-
-    def frac(tag):
-        """Return [dxi_plus, dxi_minus] of one setting against the
-        default, each reshaped to (npair, NTHETA)."""
-        # first the xi_plus block, then xi_minus; fractional difference
-        # against the default, NaN where the mask removes the point
-        ref, cur = dv[SETTINGS[0][0]], dv[tag]
-        out = []
-        for s in range(2):
-            sl = slice(s * nxi, (s + 1) * nxi)
-            with np.errstate(divide="ignore", invalid="ignore"):
-                d = np.where(mask[sl] > 0, cur[sl] / ref[sl] - 1.0, np.nan)
-            out.append(d.reshape(npair, NTHETA))
-        return out
-
-    plot({"Z_MID": frac("Z_MID")},
-         "photoz_zmid_dxi.png",
-         "roman_real cosmic shear: n(z) z-column read as Z_MID instead of "
-         "Z_LOW (frozen fiducial)", scale=100.0, unit="%", ylim=4.0)
-    plot({"linear": frac("linear"), "steffen": frac("steffen")},
-         "photoz_interp_dxi.png",
-         "roman_real cosmic shear: linear and Steffen n(z) interpolation "
-         "vs cubic spline (frozen fiducial)", scale=1.0e4,
-         unit=r"$10^{-4}$", ylim=8.0)
-
+# cocoa_testing_figures imports matplotlib, which the test shim must
+# never pull in; the figure scripts import it directly instead (the
+# shim import above already put the core folder on the module path)
+import cocoa_testing_figures as figs
 
 if __name__ == "__main__":
-    main()
+    figs.photoz_convention_figures(
+        u, out_dir=FIGURES, kind="real",
+        # 8 source bins, 15 log-spaced angular bins between the two
+        # theta [arcmin] values, the scale-cut mask of the frozen contract, and
+        # the (rows, columns) panel grid the source pairs fill
+        ntomo=8, nlen=15, x_min=2.5, x_max=250.0,
+        mask_file=os.path.join(TESTS, "frozen", "data",
+                               "example1.mask"),
+        grid=(6, 6))
