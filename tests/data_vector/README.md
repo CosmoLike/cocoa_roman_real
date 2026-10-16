@@ -31,8 +31,7 @@ same.
 3. [Appendix](#appendix)
     1. [FAQ: Do the tests keep their own data?](#frozen_copy)
     2. [FAQ: Why do the TATT tests use their own data vector?](#synthetic_vectors)
-    3. [FAQ: Why were the references refrozen on 2026-09-28?](#gg_growth_fix)
-    4. [FAQ: How can maintainers refresh the snapshot?](#refreeze)
+    3. [FAQ: How can maintainers refresh the snapshot?](#refreeze)
 
 ## Running the tests <a name="run_tests"></a>
 
@@ -157,12 +156,16 @@ The point values, the design, and the decision record live with the
 lsst_y1 project (its tests/README.md carries the full discussion);
 the table below is this project's own measurement:
 
-| output table (points) | internal grid (points) | max $\Delta\chi^2$ | cost per cosmology |
+| output table (points) | internal grid (points) | max $\Delta\chi^2$ | Runtime / first row |
 |---|---|---|---|
-| 1,100 | 1,100 (shared) | 2248 | 1.2 s |
-| 128,900 | 1,100 | 0.187 | 1.2 s |
-| 1,024,900 (`accuracyboost: 1`, the default) | 1,100 (the default) | 0.0194 | 1.5 s |
-| 2,048,900 (`accuracyboost: 2`) | 1,300 (`internal_accuracyboost: 2`) | 0.0171 | 1.8 s |
+| 1,100 | 1,100 (shared) | 2248 | 1.00 |
+| 128,900 | 1,100 | 0.187 | 1.00 |
+| 1,024,900 (`accuracyboost: 1`, the default) | 1,100 (the default) | 0.0194 | 1.25 |
+| 2,048,900 (`accuracyboost: 2`) | 1,300 (`internal_accuracyboost: 2`) | 0.0171 | 1.50 |
+
+Runtime ratios use the first row of this table as the baseline, with the
+same timed scope and machine. They compare sampling costs within this
+project; absolute runtimes depend on the machine.
 
 ![The 30 comparison points, colored by the per-point difference](cfastpt_vs_fastpt_points.png)
 
@@ -665,49 +668,12 @@ a data vector generated with TATT at the fiducial point when the
 snapshot was created: at its own minimum the TATT $\chi^2$ responds quadratically to
 numerical changes instead of linearly on the side of a hill.
 
-## :interrobang: FAQ: Why were the references refrozen on 2026-09-28? <a name="gg_growth_fix"></a>
-
-On 2026-09-28 the non-Limber galaxy clustering spectrum
-$C_\ell^{gg}$ was fixed, the shipped data vector was regenerated
-with the fixed code, the galaxy-galaxy lensing default switched to
-non-Limber (`adopt_limber_gs: 0`), and the snapshot was refrozen.
-The bug: below $\ell = 150$ cosmolike's `C_cl_tomo` computes
-
-$$C_\ell = C_\ell^{\rm FFTLog}(P_{\rm lin}) + C_\ell^{\rm Limber}(P_\delta) - C_\ell^{\rm Limber}(P_{\rm lin}),$$
-
-an exact FFTLog projection of the linear power spectrum plus, in the
-Limber approximation, what linear theory misses. Where the Limber
-approximation holds (high $\ell$) the first and third terms must
-converge to the same number and cancel, leaving the Limber
-$C_\ell^{gg}$. The FFTLog term needs separable growth,
-$D(z_1) D(z_2) P_{\rm lin}(k, z=0)$, but the subtracted Limber term
-used CAMB's $P_{\rm lin}(k, z)$, whose growth depends on scale
-(massive neutrinos): the two differ by 0.7% at $z = 0.3$ and 1.6% at
-$z = 1$. The pair never cancelled. Every $C_\ell^{gg}$ below the switch
-to Limber carried a -0.85% to -1.6% offset, and the 1% early exit
-fired near $\ell = 50$, where the decaying non-Limber correction
-happened to cancel the offset, dropping a real 1.3% to 2.2%
-correction for the highest lens bins. With the fix the subtracted
-term uses $D(a)^2 P_{\rm lin}(k, z=0)$, and the two terms agree to
-0.02% to 0.17% at $\ell = 149$.
-
-The fix changes $w(\theta)$ only; cosmic shear and galaxy-galaxy
-lensing are unchanged. Against the pre-fix references, measured on
-2026-09-28 before the refreeze:
-
-- 3x2pt NLA (test 5): $\chi^2 = 0.124$ against the reference 0.107;
-  TATT (test 7): 0.0083 against 0.
-- 2x2pt NLA (test 11): 0.064 against 0.048; TATT (test 13): 0.0078
-  against 0. All pass (limit 0.2).
-
-The refreeze (next FAQ) regenerated `data/example1.modelvector` at
-the frozen fiducial with the fixed code and the non-Limber ggl
-default, and made the new $\chi^2$ values the references.
-
 ## :interrobang: FAQ: How can maintainers refresh the snapshot? <a name="refreeze"></a>
 
 A deliberate change to the data vectors, n(z), covariance, examples,
-or likelihood defaults requires a re-freeze.
+or likelihood defaults requires a re-freeze. The `_meta` block of
+`frozen/reference_chi2.json` records when the current references were
+generated.
 
 We assume users are in the Conda cocoa environment from a previous
 `conda activate cocoa` command, that the shell is bash, and that the
