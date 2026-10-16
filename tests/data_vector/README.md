@@ -83,13 +83,13 @@ configurations and test numbers:
 
 | file | configuration | tests |
 |---|---|---|
-| `test_example1.py` | cosmic shear | 1-4: drift and race, in NLA then TATT |
-| `test_example2.py` | 3x2pt | 5-8: drift and race, in NLA then TATT |
-| `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`, the 3x2pt configuration reduced to galaxy clustering plus galaxy-galaxy lensing) | 11-14: drift and race, in NLA then TATT |
-| `test_notebook_interface.py` | the notebook-style direct interface: EXAMPLE_EVALUATE1.ipynb's call sequence (its own CAMB run, `set_cosmology`, `compute_data_vector_masked`, no cobaya) on the frozen cosmic-shear dataset and point | 15: $\Delta\chi^2$ against the stored cobaya reference, within 0.2 |
-| `test_fastpt.py` | the sweep on cosmic shear, the 3x2pt likelihood (`roman_real.combo_3x2pt`) and the 2x2pt likelihood (`roman_real.combo_2x2pt`) | 16, 17, 18 |
-| `test_ee2.py` | cosmic shear, NLA with EE2 (`non_linear_emul: 1`) | 19: race, including EE2's own threaded compute |
-| `test_halo_ia_race.py` | 3x2pt with Limber galaxy-galaxy lensing; halo-model IA (`include_halo_IA: 1`, Fortuna et al. 2021); runs only with `COCOA_HALO_SLOW=1` | 20: ten same-model evaluations, halo-IA tables refilled each time, bitwise identical; 21: fresh processes at 1, 4 and 8 OpenMP threads, bitwise identical |
+| `test_example1.py` | cosmic shear | 1-4 |
+| `test_example2.py` | 3x2pt | 5-8 |
+| `test_example2_2x2pt.py` | 2x2pt (`roman_real.combo_2x2pt`) | 11-14 |
+| `test_notebook_interface.py` | the notebook-style direct interface (EXAMPLE_EVALUATE1.ipynb's call sequence: its own CAMB run, `set_cosmology`, `compute_data_vector_masked`, no cobaya) on the frozen cosmic-shear dataset and point | 15 |
+| `test_fastpt.py` | the sweep: shear; 3x2pt (`roman_real.combo_3x2pt`); 2x2pt (`roman_real.combo_2x2pt`) | 16, 17, 18 |
+| `test_ee2.py` | race | 19 |
+| `test_halo_ia_race.py` | 3x2pt with Limber ggl; halo-model IA (`include_halo_IA: 1`, Fortuna et al. 2021); only with `COCOA_HALO_SLOW=1` | 20: ten same-model evaluations bitwise; 21: fresh processes at 1, 4, 8 threads bitwise |
 
 Tests 9 and 10 are not used: the numbering follows the shared
 convention, where they are the frozen FAST-PT reference checks
